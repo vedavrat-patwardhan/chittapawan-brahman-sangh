@@ -1,4 +1,15 @@
 /** Options aligned with intake form structure (community directory). */
+import { City } from "country-state-city";
+
+/** All Indian cities, sorted alphabetically, deduplicated. */
+export const INDIA_CITIES: readonly string[] = [
+  ...new Set(
+    (City.getCitiesOfCountry("IN") ?? [])
+      .map((c) => c.name.trim())
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" })),
+  ),
+];
 
 export const BUSINESS_CATEGORIES = [
   "Manufacturing",

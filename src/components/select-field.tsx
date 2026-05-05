@@ -73,8 +73,7 @@ export interface SearchableSelectProps {
   placeholder?: string;
   hasError?: boolean;
   defaultValue?: string;
-  /** Label for the empty/placeholder option */
-  emptyLabel?: string;
+  onChange?: (value: string) => void;
 }
 
 export function SearchableSelect({
@@ -83,7 +82,7 @@ export function SearchableSelect({
   placeholder = "Select…",
   hasError = false,
   defaultValue = "",
-  emptyLabel,
+  onChange,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -101,14 +100,18 @@ export function SearchableSelect({
     if (open) setTimeout(() => searchRef.current?.focus(), 40);
   }, [open]);
 
-  const filtered = options.filter((o) =>
+  const MAX_VISIBLE = 100;
+  const allFiltered = options.filter((o) =>
     o.toLowerCase().includes(search.toLowerCase()),
   );
+  const filtered = allFiltered.slice(0, MAX_VISIBLE);
+  const hasMore = allFiltered.length > MAX_VISIBLE;
 
   function select(opt: string) {
     setSelected(opt);
     setOpen(false);
     setSearch("");
+    onChange?.(opt);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -120,21 +123,45 @@ export function SearchableSelect({
     <div ref={containerRef} className="relative">
       <input type="hidden" name={name} value={selected} />
 
-      {/* Trigger */}
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
+      {/* Trigger — div avoids nested <button> hydration error */}
+      <div
+        role="combobox"
+        tabIndex={0}
         aria-expanded={open}
         aria-haspopup="listbox"
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen((o) => !o); }
+          if (e.key === "Escape") { setOpen(false); setSearch(""); }
+        }}
         className={cn(
-          "field-input flex w-full items-center justify-between gap-2 text-left",
+          "field-input flex min-h-11.5 w-full cursor-pointer items-center justify-between gap-2",
           hasError && "field-input-error",
-          !selected && "text-(--muted)",
         )}
       >
-        <span className="min-w-0 truncate">{selected || placeholder}</span>
+        <div className="flex min-w-0 flex-1 items-center">
+          {selected ? (
+            <span className="select-chip">
+              {selected}
+              <button
+                type="button"
+                aria-label={`Clear ${selected}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelected("");
+                  onChange?.("");
+                }}
+                className="select-chip-remove"
+              >
+                ×
+              </button>
+            </span>
+          ) : (
+            <span className="text-(--muted)">{placeholder}</span>
+          )}
+        </div>
         <ChevronIcon open={open} />
-      </button>
+      </div>
 
       {/* Panel */}
       {open && (
@@ -164,36 +191,30 @@ export function SearchableSelect({
           </div>
 
           <ul role="listbox" className="select-options">
-            {emptyLabel && (
-              <li
-                role="option"
-                aria-selected={selected === ""}
-                onClick={() => select("")}
-                className={cn("select-option", selected === "" && "select-option-active")}
-              >
-                <span className="select-option-check">
-                  {selected === "" && <TickIcon />}
-                </span>
-                <span className="select-option-text text-(--muted)">{emptyLabel}</span>
-              </li>
-            )}
-            {filtered.length === 0 ? (
+            {allFiltered.length === 0 ? (
               <li className="select-empty">No options match "{search}"</li>
             ) : (
-              filtered.map((opt) => (
-                <li
-                  key={opt}
-                  role="option"
-                  aria-selected={selected === opt}
-                  onClick={() => select(opt)}
-                  className={cn("select-option", selected === opt && "select-option-active")}
-                >
-                  <span className="select-option-check">
-                    {selected === opt && <TickIcon />}
-                  </span>
-                  <span className="select-option-text">{opt}</span>
-                </li>
-              ))
+              <>
+                {filtered.map((opt) => (
+                  <li
+                    key={opt}
+                    role="option"
+                    aria-selected={selected === opt}
+                    onClick={() => select(opt)}
+                    className={cn("select-option", selected === opt && "select-option-active")}
+                  >
+                    <span className="select-option-check">
+                      {selected === opt && <TickIcon />}
+                    </span>
+                    <span className="select-option-text">{opt}</span>
+                  </li>
+                ))}
+                {hasMore && (
+                  <li className="select-empty">
+                    {allFiltered.length - MAX_VISIBLE} more — type to narrow down
+                  </li>
+                )}
+              </>
             )}
           </ul>
         </div>

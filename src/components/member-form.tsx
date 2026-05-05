@@ -8,9 +8,9 @@ import { submitDirectoryMember } from "@/app/actions/member";
 import {
   BUSINESS_CATEGORIES,
   BUSINESS_TYPES,
+  INDIA_CITIES,
   LOOKING_FOR_OPTIONS,
   PRICE_RANGE_OPTIONS,
-  SAMPLE_CITIES,
   SERVICE_AREA_OPTIONS,
   YEARS_EXPERIENCE_OPTIONS,
 } from "@/lib/constants/form-options";
@@ -397,16 +397,13 @@ export function MemberIntakeForm() {
         <StepShell stepNum={1} title={STEPS[1].title} visible={step === 1} animClass={animClass}>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <WizardField label="City" required error={fieldErrors.city}>
-              <input
+              <SearchableSelect
                 name="city"
-                list="city-list"
-                placeholder="Nashik"
-                className={ic(fieldErrors, "city")}
+                options={INDIA_CITIES}
+                placeholder="Search city…"
+                hasError={!!fieldErrors.city}
                 onChange={() => clearError("city")}
               />
-              <datalist id="city-list">
-                {SAMPLE_CITIES.map((c) => <option key={c} value={c} />)}
-              </datalist>
             </WizardField>
             <WizardField label="Area / locality">
               <input name="area_locality" placeholder="Tilak Road" className="field-input" />
@@ -444,7 +441,7 @@ export function MemberIntakeForm() {
                 options={BUSINESS_CATEGORIES}
                 placeholder="Select sector…"
                 hasError={!!fieldErrors.business_category}
-                emptyLabel="— Select a category —"
+                onChange={() => clearError("business_category")}
               />
             </WizardField>
             <WizardField label="Sub-category" required hint="e.g. 'GST consultant'" error={fieldErrors.sub_category}>
@@ -471,7 +468,6 @@ export function MemberIntakeForm() {
                 name="years_experience"
                 options={YEARS_EXPERIENCE_OPTIONS}
                 placeholder="Select range…"
-                emptyLabel="— Not specified —"
               />
             </WizardField>
             <WizardField label="Price positioning" hint="Optional">
