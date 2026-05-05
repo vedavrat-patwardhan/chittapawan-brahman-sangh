@@ -1,26 +1,518 @@
 @import "tailwindcss";
 
+/* ─── Bhagava Design System (#EC7416 → oklch(65% 0.207 46)) ─────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: only light;
+
+  /* Easing */
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* Spacing (4pt) */
+  --space-xs:  0.25rem;
+  --space-sm:  0.5rem;
+  --space-md:  1rem;
+  --space-lg:  1.5rem;
+  --space-xl:  2.5rem;
+  --space-2xl: 4rem;
+
+  /* #EC7416 — Bhagava saffron */
+  --accent:       oklch(65% 0.207 46);
+  --accent-strong: oklch(52% 0.210 43);
+  --accent-soft:  color-mix(in oklch, var(--accent) 15%, transparent);
+  --accent-xsoft: color-mix(in oklch, var(--accent) 7%, transparent);
+  --accent-glow:  color-mix(in oklch, var(--accent) 30%, transparent);
+
+  /* Warm parchment surfaces */
+  --surface:       oklch(97.5% 0.016 78);
+  --surface-raised: oklch(99.4% 0.007 82);
+  --surface-card:  oklch(99% 0.010 80);
+  --surface-inset: oklch(96.2% 0.022 76);
+
+  /* Ink */
+  --ink:      oklch(22% 0.052 55);
+  --ink-soft: oklch(40% 0.040 60);
+  --muted:    oklch(60% 0.026 70);
+
+  /* Borders — concrete, visible warm tan */
+  --line:         oklch(87% 0.020 78);
+  --line-strong:  oklch(78% 0.030 72);
+
+  /* Semantic */
+  --risk:    oklch(52% 0.20 27);
+  --success: oklch(53% 0.16 148);
+
+  /* Layout */
+  --hero-pad-inline: clamp(1rem, 4vw, 2.25rem);
+  --form-max-w: 40rem;
+  --radius-card:  1.25rem;
+  --radius-input: 0.625rem;
+
+}
+
+html[data-scroll-behavior="smooth"] {
+  scroll-behavior: smooth;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans:    var(--font-body);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@media (prefers-reduced-motion: reduce) {
+  html[data-scroll-behavior="smooth"] { scroll-behavior: auto; }
+  *, ::before, ::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
+/* ─── Base ─────────────────────────────────────────────────────────────── */
+html {
+  /* Fixed-attachment gradient on html so it never shifts on scroll */
+  background-color: var(--surface);
+  background-image: radial-gradient(
+    ellipse 120% 40% at 50% -5%,
+    color-mix(in oklch, var(--accent) 22%, transparent) 0%,
+    transparent 65%
+  );
+  background-attachment: fixed;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  font-family: var(--font-body), system-ui, sans-serif;
+  background: transparent;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+button,
+[role="button"],
+[role="option"],
+label,
+select,
+summary {
+  cursor: pointer;
+}
+
+/* ─── Animations ────────────────────────────────────────────────────────── */
+@keyframes rise-fade {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes step-enter-forward {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+@keyframes step-enter-back {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0);     }
+}
+
+.motion-rise         { animation: rise-fade 600ms var(--ease-out-expo) both; }
+.motion-rise-delay-1 { animation: rise-fade 600ms var(--ease-out-expo) 80ms  both; }
+.motion-rise-delay-2 { animation: rise-fade 600ms var(--ease-out-expo) 160ms both; }
+.motion-rise-delay-3 { animation: rise-fade 600ms var(--ease-out-expo) 240ms both; }
+
+.step-forward { animation: step-enter-forward 400ms var(--ease-out-expo) both; }
+.step-back    { animation: step-enter-back    400ms var(--ease-out-expo) both; }
+
+/* ─── Focus ring ──────────────────────────────────────────────────────── */
+.ring-focus {
+  outline: 2.5px solid color-mix(in oklch, var(--accent) 65%, white);
+  outline-offset: 2px;
+}
+
+/* ─── Input base ──────────────────────────────────────────────────────── */
+.field-input {
+  width: 100%;
+  border-radius: var(--radius-input);
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface-raised);
+  padding: 0.72rem 0.875rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--ink);
+  line-height: 1.5;
+  box-shadow:
+    inset 0 1.5px 3px rgba(0, 0, 0, 0.04),
+    inset 0 0 0 0 transparent;
+  transition:
+    border-color 180ms var(--ease-out-quart),
+    box-shadow   180ms var(--ease-out-quart),
+    background   180ms var(--ease-out-quart);
+}
+
+.field-input::placeholder {
+  color: var(--muted);
+}
+
+.field-input:hover {
+  border-color: oklch(68% 0.040 68);
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--surface-card);
+  box-shadow:
+    inset 0 1.5px 3px rgba(0, 0, 0, 0.04),
+    0 0 0 3px var(--accent-soft);
+}
+
+.field-input:focus-visible { outline: none; }
+
+/* ─── Phone field ─────────────────────────────────────────────────────── */
+.phone-field-root {
+  display: flex;
+  border-radius: var(--radius-input);
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface-raised);
+  overflow: hidden;
+  transition:
+    border-color 180ms var(--ease-out-quart),
+    box-shadow   180ms var(--ease-out-quart);
+  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.04);
+}
+
+.phone-field-root:hover {
+  border-color: oklch(68% 0.040 68);
+}
+
+.phone-field-root:focus-within {
+  border-color: var(--accent);
+  background: var(--surface-card);
+  box-shadow:
+    inset 0 1.5px 3px rgba(0, 0, 0, 0.04),
+    0 0 0 3px var(--accent-soft);
+}
+
+.phone-field-error {
+  border-color: var(--risk) !important;
+  background: color-mix(in oklch, var(--risk) 4%, var(--surface-raised));
+}
+
+.phone-field-error:focus-within {
+  border-color: var(--risk) !important;
+  box-shadow:
+    inset 0 1.5px 3px rgba(0, 0, 0, 0.04),
+    0 0 0 3px color-mix(in oklch, var(--risk) 18%, transparent) !important;
+}
+
+/* react-phone-number-input internals */
+.phone-field-root .PhoneInput {
+  display: contents;
+}
+
+/* Country select — hidden native, visible styled overlay */
+.phone-country-select {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.phone-country-native {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  z-index: 1;
+}
+
+.phone-country-display {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.72rem 0.5rem 0.72rem 0.875rem;
+  border-right: 1.5px solid var(--line-strong);
+  background: color-mix(in oklch, var(--accent) 5%, var(--surface-raised));
+  pointer-events: none;
+  white-space: nowrap;
+  transition: background 180ms;
+}
+
+.phone-field-root:hover .phone-country-display,
+.phone-field-root:focus-within .phone-country-display {
+  background: color-mix(in oklch, var(--accent) 8%, var(--surface-card));
+}
+
+.phone-flag {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.phone-code {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+}
+
+.phone-chevron {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* Text input area */
+.phone-number-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.72rem 0.875rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  outline: none;
+  line-height: 1.5;
+}
+
+.phone-number-input::placeholder {
+  color: var(--muted);
+}
+
+/* ─── Searchable select + multiselect ────────────────────────────────── */
+
+/* Dropdown panel */
+.select-dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 50;
+  border-radius: var(--radius-card);
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface-card);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 16px 32px -8px rgba(0, 0, 0, 0.12),
+    0 0 0 1px color-mix(in oklch, var(--accent) 6%, transparent);
+  overflow: hidden;
+  animation: rise-fade 180ms var(--ease-out-expo) both;
+}
+
+/* Search row */
+.select-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-inset);
+}
+
+.select-search-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.select-search-input::placeholder {
+  color: var(--muted);
+}
+
+.select-clear-x {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms;
+}
+
+.select-clear-x:hover {
+  background: color-mix(in oklch, var(--risk) 25%, var(--surface-raised));
+  color: var(--risk);
+}
+
+/* Options list */
+.select-options {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.select-empty {
+  padding: 12px 10px;
+  font-size: 0.875rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Individual option */
+.select-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: calc(var(--radius-card) - 4px);
+  cursor: pointer;
+  transition: background 120ms;
+  user-select: none;
+}
+
+.select-option:hover {
+  background: var(--accent-xsoft);
+}
+
+.select-option-active {
+  background: color-mix(in oklch, var(--accent) 10%, var(--surface-raised));
+}
+
+.select-option-active:hover {
+  background: color-mix(in oklch, var(--accent) 14%, var(--surface-raised));
+}
+
+.select-option-text {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.select-option-active .select-option-text {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* Single-select check circle */
+.select-option-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface-raised);
+  flex-shrink: 0;
+  transition: background 150ms, border-color 150ms;
+}
+
+.select-option-active .select-option-check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Multi-select checkbox square */
+.select-multi-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface-raised);
+  flex-shrink: 0;
+  transition: background 150ms, border-color 150ms;
+}
+
+.select-multi-check-filled {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Footer bar */
+.select-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-inset);
+}
+
+.select-clear-all {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--risk);
+  cursor: pointer;
+  transition: opacity 120ms;
+}
+
+.select-clear-all:hover { opacity: 0.75; }
+
+/* Selected chips inside trigger */
+.select-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 2px 9px;
+  border-radius: 99px;
+  background: color-mix(in oklch, var(--accent) 12%, var(--surface-raised));
+  border: 1px solid color-mix(in oklch, var(--accent) 25%, transparent);
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.select-chip-remove {
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--accent-strong);
+  opacity: 0.7;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 120ms;
+}
+
+.select-chip-remove:hover { opacity: 1; }
+
+.select-chip-overflow {
+  background: var(--surface-inset);
+  border-color: var(--line-strong);
+  color: var(--muted);
+}
+
+/* ─── Input error state ───────────────────────────────────────────────── */
+.field-input-error {
+  border-color: var(--risk) !important;
+  background: color-mix(in oklch, var(--risk) 4%, var(--surface-raised));
+}
+
+.field-input-error:hover {
+  border-color: var(--risk) !important;
+}
+
+.field-input-error:focus {
+  border-color: var(--risk) !important;
+  box-shadow:
+    inset 0 1.5px 3px rgba(0, 0, 0, 0.04),
+    0 0 0 3px color-mix(in oklch, var(--risk) 18%, transparent) !important;
 }
