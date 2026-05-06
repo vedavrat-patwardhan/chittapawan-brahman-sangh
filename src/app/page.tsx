@@ -19,9 +19,10 @@ export default function HomePage() {
             A living record of every Sangh trade and profession.
           </h1>
           <p className="motion-rise-delay-2 mt-6 max-w-[60ch] text-base leading-relaxed text-[var(--ink-soft)] sm:text-lg">
-            Since 1933 the Sangh has united Chitpavan families through commerce,
-            education, and mutual support. This directory extends that mission online —
-            search by sector, city, or keyword; reach anyone in the network within seconds.
+            Since 1933 the Sangh has united Chittapawan families through
+            commerce, education, and mutual support. This directory extends that
+            mission online — search by sector, city, or keyword; reach anyone in
+            the network within seconds.
           </p>
           <div className="motion-rise-delay-3 mt-8 flex flex-wrap gap-3">
             <Link
@@ -64,9 +65,9 @@ export default function HomePage() {
               Your business, discoverable to the whole community.
             </h2>
             <p className="max-w-[52ch] leading-relaxed text-[var(--ink-soft)]">
-              The Sangh&apos;s Business Forum has served entrepreneurs since its founding.
-              This directory gives every member a permanent, searchable profile — no
-              WhatsApp forwarding, no outdated PDFs.
+              The Sangh&apos;s Business Forum has served entrepreneurs since its
+              founding. This directory gives every member a permanent,
+              searchable profile — no WhatsApp forwarding, no outdated PDFs.
             </p>
             <Link
               href="/join"
@@ -86,7 +87,7 @@ export default function HomePage() {
               {
                 n: "02",
                 title: "Keyword discovery",
-                body: "Members tag their trade precisely so anyone can find \"wedding catering\" or \"GST filing\" in one search.",
+                body: 'Members tag their trade precisely so anyone can find "wedding catering" or "GST filing" in one search.',
               },
               {
                 n: "03",
@@ -106,8 +107,12 @@ export default function HomePage() {
                 <span className="font-[family-name:var(--font-display)] text-3xl font-bold text-[var(--accent-soft)]">
                   {card.n}
                 </span>
-                <h3 className="mt-3 font-semibold text-[var(--ink)]">{card.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">{card.body}</p>
+                <h3 className="mt-3 font-semibold text-[var(--ink)]">
+                  {card.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">
+                  {card.body}
+                </p>
               </article>
             ))}
           </div>

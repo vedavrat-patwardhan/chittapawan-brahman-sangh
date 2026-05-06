@@ -8,11 +8,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Chitpavan Brahman Sangh · Business Directory",
-    template: "%s · Chitpavan Brahman Sangh",
+    default: "Chittapawan Brahman Sangh · Business Directory",
+    template: "%s · Chittapawan Brahman Sangh",
   },
   description:
-    "The digital member directory of Chitpavan Brahman Sangh, Nashik — est. 1933. Browse and connect with 175+ community businesses.",
+    "The digital member directory of Chittapawan Brahman Sangh, Nashik — est. 1933. Browse and connect with 175+ community businesses.",
 };
 
 const libreDisplay = Libre_Bodoni({
@@ -31,7 +31,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={`${libreDisplay.variable} ${atkinsonBody.variable}`}>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      className={`${libreDisplay.variable} ${atkinsonBody.variable}`}
+    >
       <body className="relative">
         <a
           className="sr-only focus-visible:pointer-events-auto focus-visible:absolute focus-visible:left-5 focus-visible:top-5 focus-visible:z-[60] focus-visible:inline-flex focus-visible:rounded-full focus-visible:bg-[var(--accent)] focus-visible:px-5 focus-visible:py-3 focus-visible:text-sm focus-visible:font-semibold focus-visible:text-[color-mix(in_oklch,white_96%,var(--accent))] focus-visible:ring-focus"
@@ -48,7 +52,10 @@ export default function RootLayout({
         </div>
 
         {/* Mobile floating nav bar */}
-        <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-0 z-20 sm:hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-x-0 bottom-0 z-20 sm:hidden"
+        >
           <div className="flex justify-center px-[var(--hero-pad-inline)] pb-6">
             <div className="pointer-events-auto flex w-full max-w-xs items-center gap-2 rounded-full bg-[color-mix(in_oklch,var(--surface-card)_85%,transparent)] p-1.5 shadow-[0_4px_24px_-4px_color-mix(in_oklch,var(--accent)_35%,rgba(0,0,0,0.25))] backdrop-blur-xl backdrop-saturate-150">
               <Link

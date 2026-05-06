@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { DirectoryPagination } from "@/components/directory-pagination";
-import { BUSINESS_CATEGORIES, BUSINESS_TYPES } from "@/lib/constants/form-options";
+import {
+  BUSINESS_CATEGORIES,
+  BUSINESS_TYPES,
+} from "@/lib/constants/form-options";
 import { listMembers } from "@/lib/directory-queries";
 import { qp, type RawSearchParams } from "@/lib/search-params";
 import { cn } from "@/lib/utils/cn";
@@ -11,7 +14,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Member Directory",
-  description: "Search and filter Chitpavan Brahman Sangh members by sector, business type, and city.",
+  description:
+    "Search and filter Chittapawan Brahman Sangh members by sector, business type, and city.",
 };
 
 type PageProps = {
@@ -23,18 +27,33 @@ const fi =
 
 function ErrorBanner({ message }: { message: string }) {
   return (
-    <div className="mx-auto max-w-6xl px-[var(--hero-pad-inline)] py-10" role="alert">
+    <div
+      className="mx-auto max-w-6xl px-[var(--hero-pad-inline)] py-10"
+      role="alert"
+    >
       <div className="rounded-[var(--radius-card)] border border-[color-mix(in_oklch,var(--risk)_30%,transparent)] bg-[color-mix(in_oklch,var(--risk)_6%,transparent)] p-6 text-sm text-[var(--ink)]">
-        <p className="font-semibold text-[var(--accent-strong)]">Directory unavailable</p>
+        <p className="font-semibold text-[var(--accent-strong)]">
+          Directory unavailable
+        </p>
         <p className="mt-2 text-[var(--ink-soft)]">{message}</p>
         <p className="mt-4 text-xs text-[var(--muted)]">
           Set{" "}
-          <code className="rounded bg-[var(--surface-inset)] px-1">NEXT_PUBLIC_SUPABASE_URL</code>
-          {" "}and{" "}
-          <code className="rounded bg-[var(--surface-inset)] px-1">SUPABASE_SECRET_KEY</code>
-          {" "}in <code className="rounded bg-[var(--surface-inset)] px-1">.env.local</code>
+          <code className="rounded bg-[var(--surface-inset)] px-1">
+            NEXT_PUBLIC_SUPABASE_URL
+          </code>{" "}
+          and{" "}
+          <code className="rounded bg-[var(--surface-inset)] px-1">
+            SUPABASE_SECRET_KEY
+          </code>{" "}
+          in{" "}
+          <code className="rounded bg-[var(--surface-inset)] px-1">
+            .env.local
+          </code>
           , then apply the migration in{" "}
-          <code className="rounded bg-[var(--surface-inset)] px-1">supabase/migrations/</code>.
+          <code className="rounded bg-[var(--surface-inset)] px-1">
+            supabase/migrations/
+          </code>
+          .
         </p>
       </div>
     </div>
@@ -60,11 +79,17 @@ export default async function DirectoryPage(props: PageProps) {
       page: Number.isFinite(page) && page > 0 ? page : 1,
     });
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : "Unexpected error reaching Supabase.";
+    const message =
+      e instanceof Error ? e.message : "Unexpected error reaching Supabase.";
     return <ErrorBanner message={message} />;
   }
 
-  const baseQuery: Record<string, string | undefined> = { search, category, city, business_type };
+  const baseQuery: Record<string, string | undefined> = {
+    search,
+    category,
+    city,
+    business_type,
+  };
   const hasFilters = !!(search || category || city || business_type);
 
   return (
@@ -84,7 +109,10 @@ export default async function DirectoryPage(props: PageProps) {
 
       {/* Filter bar */}
       <section className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface-card)] p-5 shadow-[0_24px_64px_-48px_color-mix(in_oklch,var(--accent)_20%,rgba(0,0,0,0.12))]">
-        <form className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" method="get">
+        <form
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+          method="get"
+        >
           <label className="flex flex-col gap-1.5 sm:col-span-2">
             <span className="text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
               Search
@@ -101,10 +129,16 @@ export default async function DirectoryPage(props: PageProps) {
             <span className="text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
               Sector
             </span>
-            <select name="category" defaultValue={category ?? ""} className={fi}>
+            <select
+              name="category"
+              defaultValue={category ?? ""}
+              className={fi}
+            >
               <option value="">All sectors</option>
               {BUSINESS_CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
           </label>
@@ -113,10 +147,16 @@ export default async function DirectoryPage(props: PageProps) {
             <span className="text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--muted)] uppercase">
               Business type
             </span>
-            <select name="business_type" defaultValue={business_type ?? ""} className={fi}>
+            <select
+              name="business_type"
+              defaultValue={business_type ?? ""}
+              className={fi}
+            >
               <option value="">All types</option>
               {BUSINESS_TYPES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
           </label>
@@ -157,18 +197,30 @@ export default async function DirectoryPage(props: PageProps) {
       <section className="space-y-4">
         <div className="flex items-baseline justify-between gap-4">
           <p className="text-sm text-[var(--muted)]">
-            <span className="font-semibold tabular-nums text-[var(--ink)]">{data.total}</span>{" "}
+            <span className="font-semibold tabular-nums text-[var(--ink)]">
+              {data.total}
+            </span>{" "}
             {data.total === 1 ? "member" : "members"}
             {hasFilters ? " matching filters" : ""}
           </p>
-          <p className="hidden text-xs text-[var(--muted)] sm:block">Scroll table sideways on mobile</p>
+          <p className="hidden text-xs text-[var(--muted)] sm:block">
+            Scroll table sideways on mobile
+          </p>
         </div>
 
         <div className="-mx-[var(--hero-pad-inline)] overflow-x-auto px-[var(--hero-pad-inline)] sm:mx-0 sm:px-0">
           <table className="w-full min-w-[820px] border-separate border-spacing-0 text-left text-sm">
             <thead>
               <tr>
-                {["Member", "Business", "Sector", "City", "Types", "Keywords", ""].map((h) => (
+                {[
+                  "Member",
+                  "Business",
+                  "Sector",
+                  "City",
+                  "Types",
+                  "Keywords",
+                  "",
+                ].map((h) => (
                   <th
                     key={h}
                     className={cn(
@@ -185,9 +237,15 @@ export default async function DirectoryPage(props: PageProps) {
             <tbody>
               {data.rows.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-14 text-center text-[var(--muted)]">
+                  <td
+                    colSpan={7}
+                    className="px-4 py-14 text-center text-[var(--muted)]"
+                  >
                     No members match those filters yet.{" "}
-                    <Link href="/join" className="font-semibold text-[var(--accent-strong)] hover:underline underline-offset-4">
+                    <Link
+                      href="/join"
+                      className="font-semibold text-[var(--accent-strong)] hover:underline underline-offset-4"
+                    >
                       Add the first one →
                     </Link>
                   </td>
@@ -198,13 +256,17 @@ export default async function DirectoryPage(props: PageProps) {
                     key={row.id}
                     className={cn(
                       "border-b border-[var(--line)] text-[var(--ink-soft)] transition-[background-color] duration-150 hover:bg-[var(--surface-inset)]",
-                      idx % 2 === 0 ? "bg-[var(--surface-card)]" : "bg-[var(--surface-raised)]",
+                      idx % 2 === 0
+                        ? "bg-[var(--surface-card)]"
+                        : "bg-[var(--surface-raised)]",
                     )}
                   >
                     <td className="sticky left-0 bg-inherit px-4 py-4 font-semibold text-[var(--ink)] shadow-[4px_0_10px_-6px_rgba(0,0,0,0.12)]">
                       {row.full_name}
                     </td>
-                    <td className="px-4 py-4 text-[var(--ink)]">{row.business_name}</td>
+                    <td className="px-4 py-4 text-[var(--ink)]">
+                      {row.business_name}
+                    </td>
                     <td className="px-4 py-4">
                       <span className="rounded-full bg-[var(--accent-xsoft)] px-3 py-1 text-xs font-semibold text-[var(--accent-strong)] ring-1 ring-[var(--accent-soft)]">
                         {row.business_category}
@@ -236,7 +298,11 @@ export default async function DirectoryPage(props: PageProps) {
         </div>
       </section>
 
-      <DirectoryPagination page={data.page} pageCount={data.pageCount} baseQuery={baseQuery} />
+      <DirectoryPagination
+        page={data.page}
+        pageCount={data.pageCount}
+        baseQuery={baseQuery}
+      />
     </div>
   );
 }

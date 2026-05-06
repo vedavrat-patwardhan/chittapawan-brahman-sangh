@@ -1,4 +1,4 @@
--- Member directory table for Chitpavan Nadegek Manusya
+-- Member directory table for Chittapawan Nadegek Manusya
 -- Apply in Supabase SQL editor or via Supabase CLI when linked to a project.
 
 create extension if not exists "pgcrypto";

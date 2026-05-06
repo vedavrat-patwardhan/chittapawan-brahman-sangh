@@ -20,25 +20,25 @@ import { MultiSelect, SearchableSelect } from "@/components/select-field";
 
 /* ── Step manifest ─────────────────────────────────────────────────────── */
 const STEPS = [
-  { id: "contact",  title: "Who you are",     short: "Identity" },
-  { id: "location", title: "Where you work",  short: "Location" },
-  { id: "business", title: "Your business",   short: "Business" },
-  { id: "services", title: "What you offer",  short: "Services" },
+  { id: "contact", title: "Who you are", short: "Identity" },
+  { id: "location", title: "Where you work", short: "Location" },
+  { id: "business", title: "Your business", short: "Business" },
+  { id: "services", title: "What you offer", short: "Services" },
   { id: "presence", title: "Find you online", short: "Presence" },
-  { id: "network",  title: "Connect & close", short: "Network"  },
+  { id: "network", title: "Connect & close", short: "Network" },
 ] as const;
 
 const FIELD_LABELS: Record<string, string> = {
-  full_name:        "Full name",
-  business_name:    "Business name",
-  contact_number:   "Contact number",
-  email:            "Email address",
-  city:             "City",
-  business_category:"Business category",
-  sub_category:     "Sub-category",
-  products_services:"Products / services",
-  keywords_tags:    "Keywords / tags",
-  consent_share:    "Consent",
+  full_name: "Full name",
+  business_name: "Business name",
+  contact_number: "Contact number",
+  email: "Email address",
+  city: "City",
+  business_category: "Business category",
+  sub_category: "Sub-category",
+  products_services: "Products / services",
+  keywords_tags: "Keywords / tags",
+  consent_share: "Consent",
 };
 
 const STEP_REQUIRED: Record<number, string[]> = {
@@ -70,7 +70,10 @@ function ProgressBar({ step, total }: { step: number; total: number }) {
         const done = i < step;
         const active = i === step;
         return (
-          <div key={i} className="relative z-10 flex flex-col items-center gap-2">
+          <div
+            key={i}
+            className="relative z-10 flex flex-col items-center gap-2"
+          >
             <div
               className={cn(
                 "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all duration-300",
@@ -120,7 +123,9 @@ function WizardField({
         <span className="text-sm font-semibold text-(--ink)">
           {label}
           {required && (
-            <span className="ml-0.5 text-(--accent)" aria-hidden>*</span>
+            <span className="ml-0.5 text-(--accent)" aria-hidden>
+              *
+            </span>
           )}
         </span>
         {hint && !error && (
@@ -129,8 +134,13 @@ function WizardField({
       </div>
       {children}
       {error && (
-        <p role="alert" className="flex items-center gap-1.5 text-xs font-medium text-(--risk)">
-          <span aria-hidden className="text-[0.65rem]">⚠</span>
+        <p
+          role="alert"
+          className="flex items-center gap-1.5 text-xs font-medium text-(--risk)"
+        >
+          <span aria-hidden className="text-[0.65rem]">
+            ⚠
+          </span>
           {error}
         </p>
       )}
@@ -142,7 +152,6 @@ function WizardField({
 function ic(errors: Record<string, string>, key: string) {
   return cn("field-input", errors[key] && "field-input-error");
 }
-
 
 /* ── Step shell ─────────────────────────────────────────────────────────── */
 function StepShell({
@@ -183,13 +192,20 @@ export function MemberIntakeForm() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   /* Phone state — controlled so we can validate + pass to hidden inputs */
-  const [contactPhone, setContactPhone] = useState<PhoneValue | undefined>(undefined);
-  const [whatsappPhone, setWhatsappPhone] = useState<PhoneValue | undefined>(undefined);
+  const [contactPhone, setContactPhone] = useState<PhoneValue | undefined>(
+    undefined,
+  );
+  const [whatsappPhone, setWhatsappPhone] = useState<PhoneValue | undefined>(
+    undefined,
+  );
   const [sameAsContact, setSameAsContact] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
-  const [state, formAction, isPending] = useActionState(submitDirectoryMember, undefined);
+  const [state, formAction, isPending] = useActionState(
+    submitDirectoryMember,
+    undefined,
+  );
 
   const total = STEPS.length;
   const isLast = step === total - 1;
@@ -212,7 +228,9 @@ export function MemberIntakeForm() {
 
     for (const name of required) {
       if (name === "consent_share") {
-        const cb = form.querySelector<HTMLInputElement>('[name="consent_share"]');
+        const cb = form.querySelector<HTMLInputElement>(
+          '[name="consent_share"]',
+        );
         if (!cb?.checked) errors.consent_share = "You must agree to continue.";
         continue;
       }
@@ -222,7 +240,8 @@ export function MemberIntakeForm() {
         if (!contactPhone) {
           errors.contact_number = "Contact number is required";
         } else if (!isValidPhoneNumber(contactPhone)) {
-          errors.contact_number = "Enter a valid phone number for the selected country";
+          errors.contact_number =
+            "Enter a valid phone number for the selected country";
         }
         continue;
       }
@@ -273,8 +292,10 @@ export function MemberIntakeForm() {
   }
 
   return (
-    <div ref={topRef} className="mx-auto w-full max-w-(--form-max-w) px-(--hero-pad-inline) py-10 sm:py-14">
-
+    <div
+      ref={topRef}
+      className="mx-auto w-full max-w-(--form-max-w) px-(--hero-pad-inline) py-10 sm:py-14"
+    >
       {/* Page header */}
       <div className="mb-8">
         <p className="mb-2 text-[0.68rem] font-semibold tracking-[0.16em] text-(--accent-strong) uppercase">
@@ -307,11 +328,19 @@ export function MemberIntakeForm() {
         noValidate
         className="rounded-(--radius-card) border border-(--line) bg-(--surface-card) p-6 shadow-[0_24px_64px_-48px_color-mix(in_oklch,var(--accent)_24%,rgba(0,0,0,0.16))] sm:p-8"
       >
-
         {/* ── Step 0 : Identity ──────────────────────────────────────── */}
-        <StepShell stepNum={0} title={STEPS[0].title} visible={step === 0} animClass={animClass}>
+        <StepShell
+          stepNum={0}
+          title={STEPS[0].title}
+          visible={step === 0}
+          animClass={animClass}
+        >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <WizardField label="Full name" required error={fieldErrors.full_name}>
+            <WizardField
+              label="Full name"
+              required
+              error={fieldErrors.full_name}
+            >
               <input
                 name="full_name"
                 autoComplete="name"
@@ -320,7 +349,11 @@ export function MemberIntakeForm() {
                 onChange={() => clearError("full_name")}
               />
             </WizardField>
-            <WizardField label="Business name" required error={fieldErrors.business_name}>
+            <WizardField
+              label="Business name"
+              required
+              error={fieldErrors.business_name}
+            >
               <input
                 name="business_name"
                 placeholder="Kulkarni Associates"
@@ -330,13 +363,29 @@ export function MemberIntakeForm() {
             </WizardField>
           </div>
 
-          <WizardField label="Profile photo" hint="Optional · JPG / PNG / WebP, max 5 MB">
-            <input name="profile_photo" type="file" accept="image/*" className="field-input" />
+          <WizardField
+            label="Profile photo"
+            hint="Optional · JPG / PNG / WebP, max 5 MB"
+          >
+            <input
+              name="profile_photo"
+              type="file"
+              accept="image/*"
+              className="field-input"
+            />
           </WizardField>
 
-          <WizardField label="Contact number" required error={fieldErrors.contact_number}>
+          <WizardField
+            label="Contact number"
+            required
+            error={fieldErrors.contact_number}
+          >
             {/* Hidden input carries E.164 value into FormData */}
-            <input type="hidden" name="contact_number" value={contactPhone ?? ""} />
+            <input
+              type="hidden"
+              name="contact_number"
+              value={contactPhone ?? ""}
+            />
             <PhoneField
               value={contactPhone}
               onChange={(v) => {
@@ -352,7 +401,9 @@ export function MemberIntakeForm() {
             <input
               type="hidden"
               name="whatsapp_number"
-              value={sameAsContact ? (contactPhone ?? "") : (whatsappPhone ?? "")}
+              value={
+                sameAsContact ? (contactPhone ?? "") : (whatsappPhone ?? "")
+              }
             />
             {/* Same-as-contact toggle */}
             <label className="mb-2 flex cursor-pointer items-center gap-2.5 select-none">
@@ -365,7 +416,9 @@ export function MemberIntakeForm() {
                 }}
                 className="h-4 w-4 accent-(--accent)"
               />
-              <span className="text-sm text-(--ink-soft)">Same as contact number</span>
+              <span className="text-sm text-(--ink-soft)">
+                Same as contact number
+              </span>
             </label>
             {!sameAsContact && (
               <PhoneField
@@ -376,7 +429,10 @@ export function MemberIntakeForm() {
             )}
             {sameAsContact && contactPhone && (
               <p className="rounded-lg border border-(--line) bg-(--surface-inset) px-3.5 py-2.5 text-sm text-(--ink-soft)">
-                Will use <span className="font-semibold text-(--ink)">{contactPhone}</span>
+                Will use{" "}
+                <span className="font-semibold text-(--ink)">
+                  {contactPhone}
+                </span>
               </p>
             )}
           </WizardField>
@@ -394,7 +450,12 @@ export function MemberIntakeForm() {
         </StepShell>
 
         {/* ── Step 1 : Location ──────────────────────────────────────── */}
-        <StepShell stepNum={1} title={STEPS[1].title} visible={step === 1} animClass={animClass}>
+        <StepShell
+          stepNum={1}
+          title={STEPS[1].title}
+          visible={step === 1}
+          animClass={animClass}
+        >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <WizardField label="City" required error={fieldErrors.city}>
               <SearchableSelect
@@ -406,7 +467,11 @@ export function MemberIntakeForm() {
               />
             </WizardField>
             <WizardField label="Area / locality">
-              <input name="area_locality" placeholder="Tilak Road" className="field-input" />
+              <input
+                name="area_locality"
+                placeholder="Tilak Road"
+                className="field-input"
+              />
             </WizardField>
           </div>
 
@@ -428,14 +493,27 @@ export function MemberIntakeForm() {
           </WizardField>
 
           <WizardField label="Google Maps link" hint="Optional">
-            <input name="google_maps_link" className="field-input" placeholder="https://maps.google.com/…" />
+            <input
+              name="google_maps_link"
+              className="field-input"
+              placeholder="https://maps.google.com/…"
+            />
           </WizardField>
         </StepShell>
 
         {/* ── Step 2 : Business ──────────────────────────────────────── */}
-        <StepShell stepNum={2} title={STEPS[2].title} visible={step === 2} animClass={animClass}>
+        <StepShell
+          stepNum={2}
+          title={STEPS[2].title}
+          visible={step === 2}
+          animClass={animClass}
+        >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <WizardField label="Business category" required error={fieldErrors.business_category}>
+            <WizardField
+              label="Business category"
+              required
+              error={fieldErrors.business_category}
+            >
               <SearchableSelect
                 name="business_category"
                 options={BUSINESS_CATEGORIES}
@@ -444,7 +522,12 @@ export function MemberIntakeForm() {
                 onChange={() => clearError("business_category")}
               />
             </WizardField>
-            <WizardField label="Sub-category" required hint="e.g. 'GST consultant'" error={fieldErrors.sub_category}>
+            <WizardField
+              label="Sub-category"
+              required
+              hint="e.g. 'GST consultant'"
+              error={fieldErrors.sub_category}
+            >
               <input
                 name="sub_category"
                 placeholder="Your specific niche"
@@ -489,7 +572,12 @@ export function MemberIntakeForm() {
         </StepShell>
 
         {/* ── Step 3 : Services ──────────────────────────────────────── */}
-        <StepShell stepNum={3} title={STEPS[3].title} visible={step === 3} animClass={animClass}>
+        <StepShell
+          stepNum={3}
+          title={STEPS[3].title}
+          visible={step === 3}
+          animClass={animClass}
+        >
           <WizardField
             label="Products / services"
             required
@@ -498,7 +586,10 @@ export function MemberIntakeForm() {
           >
             <textarea
               name="products_services"
-              className={cn("field-input resize-y min-h-[120px]", fieldErrors.products_services && "field-input-error")}
+              className={cn(
+                "field-input resize-y min-h-[120px]",
+                fieldErrors.products_services && "field-input-error",
+              )}
               rows={5}
               placeholder="Describe what you offer in plain language…"
               onChange={() => clearError("products_services")}
@@ -521,25 +612,50 @@ export function MemberIntakeForm() {
         </StepShell>
 
         {/* ── Step 4 : Presence ──────────────────────────────────────── */}
-        <StepShell stepNum={4} title={STEPS[4].title} visible={step === 4} animClass={animClass}>
+        <StepShell
+          stepNum={4}
+          title={STEPS[4].title}
+          visible={step === 4}
+          animClass={animClass}
+        >
           <WizardField label="Website">
-            <input name="website" inputMode="url" className="field-input" placeholder="https://yoursite.com" />
+            <input
+              name="website"
+              inputMode="url"
+              className="field-input"
+              placeholder="https://yoursite.com"
+            />
           </WizardField>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <WizardField label="Instagram">
-              <input name="instagram" className="field-input" placeholder="@handle or full URL" />
+              <input
+                name="instagram"
+                className="field-input"
+                placeholder="@handle or full URL"
+              />
             </WizardField>
             <WizardField label="Facebook">
-              <input name="facebook" className="field-input" placeholder="Page name or URL" />
+              <input
+                name="facebook"
+                className="field-input"
+                placeholder="Page name or URL"
+              />
             </WizardField>
           </div>
 
           <WizardField label="LinkedIn">
-            <input name="linkedin" className="field-input" placeholder="Profile or company URL" />
+            <input
+              name="linkedin"
+              className="field-input"
+              placeholder="Profile or company URL"
+            />
           </WizardField>
 
-          <WizardField label="Unique selling proposition" hint="What makes you stand out?">
+          <WizardField
+            label="Unique selling proposition"
+            hint="What makes you stand out?"
+          >
             <textarea
               name="usp"
               className="field-input resize-y min-h-[100px]"
@@ -550,17 +666,33 @@ export function MemberIntakeForm() {
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <WizardField label="Certifications / licences" hint="Optional">
-              <input name="certifications" className="field-input" placeholder="CA, FSSAI, ISO 9001…" />
+              <input
+                name="certifications"
+                className="field-input"
+                placeholder="CA, FSSAI, ISO 9001…"
+              />
             </WizardField>
             <WizardField label="Awards / achievements" hint="Optional">
-              <input name="awards" className="field-input" placeholder="Best vendor 2023…" />
+              <input
+                name="awards"
+                className="field-input"
+                placeholder="Best vendor 2023…"
+              />
             </WizardField>
           </div>
         </StepShell>
 
         {/* ── Step 5 : Network + Media + Consent ─────────────────────── */}
-        <StepShell stepNum={5} title={STEPS[5].title} visible={step === 5} animClass={animClass}>
-          <WizardField label="Looking for" hint="Helps members approach you correctly">
+        <StepShell
+          stepNum={5}
+          title={STEPS[5].title}
+          visible={step === 5}
+          animClass={animClass}
+        >
+          <WizardField
+            label="Looking for"
+            hint="Helps members approach you correctly"
+          >
             <MultiSelect
               name="looking_for"
               options={LOOKING_FOR_OPTIONS}
@@ -586,7 +718,11 @@ export function MemberIntakeForm() {
           </WizardField>
 
           <WizardField label="Referred by / group name" hint="Optional">
-            <input name="referred_by" className="field-input" placeholder="Name or WhatsApp group" />
+            <input
+              name="referred_by"
+              className="field-input"
+              placeholder="Name or WhatsApp group"
+            />
           </WizardField>
 
           {/* Media uploads */}
@@ -595,8 +731,17 @@ export function MemberIntakeForm() {
               Media uploads · optional
             </p>
             <div className="flex flex-col gap-4">
-              <WizardField label="Portfolio / product photos" hint="Multiple files, max 5 MB each">
-                <input name="portfolio" type="file" multiple accept="image/*" className="field-input" />
+              <WizardField
+                label="Portfolio / product photos"
+                hint="Multiple files, max 5 MB each"
+              >
+                <input
+                  name="portfolio"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="field-input"
+                />
               </WizardField>
               <WizardField label="Visiting card scan" hint="JPG, PNG, or PDF">
                 <input
@@ -627,14 +772,20 @@ export function MemberIntakeForm() {
                 onChange={() => clearError("consent_share")}
               />
               <span className="text-sm leading-relaxed text-(--ink-soft)">
-                <strong className="font-semibold text-(--ink)">I agree</strong> to share
-                my details with verified Chitpavan Brahman Sangh members for networking and
-                business discovery. This listing will be visible to all registered members.
+                <strong className="font-semibold text-(--ink)">I agree</strong>{" "}
+                to share my details with verified Chittapawan Brahman Sangh
+                members for networking and business discovery. This listing will
+                be visible to all registered members.
               </span>
             </label>
             {fieldErrors.consent_share && (
-              <p role="alert" className="mt-3 flex items-center gap-1.5 text-xs font-medium text-(--risk)">
-                <span aria-hidden className="text-[0.65rem]">⚠</span>
+              <p
+                role="alert"
+                className="mt-3 flex items-center gap-1.5 text-xs font-medium text-(--risk)"
+              >
+                <span aria-hidden className="text-[0.65rem]">
+                  ⚠
+                </span>
                 {fieldErrors.consent_share}
               </p>
             )}

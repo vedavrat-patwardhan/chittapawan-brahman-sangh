@@ -4,12 +4,15 @@ export function SiteHeader() {
   return (
     <header
       className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color-mix(in_oklch,var(--surface-card)_85%,transparent)]"
-      style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
+      style={{
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+      }}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-[var(--hero-pad-inline)] py-4">
         <Link href="/" className="group min-w-0">
           <span className="block font-[family-name:var(--font-display)] text-[1.15rem] font-bold leading-tight tracking-tight text-[var(--ink)] transition-colors duration-200 group-hover:text-[var(--accent-strong)] sm:text-xl">
-            Chitpavan Brahman Sangh
+            Chittapawan Brahman Sangh
           </span>
           <span className="block text-[0.68rem] font-medium tracking-[0.12em] text-[var(--muted)] uppercase">
             Nashik · est. 1933
@@ -42,15 +45,23 @@ export function SiteFooter() {
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--ink)]">
-              Chitpavan Brahman Sangh
+              Chittapawan Brahman Sangh
             </p>
-            <p className="text-sm text-[var(--muted)]">Nashik · Established 1933</p>
+            <p className="text-sm text-[var(--muted)]">
+              Nashik · Established 1933
+            </p>
           </div>
           <div className="flex flex-col gap-1 text-sm text-[var(--ink-soft)]">
-            <Link href="/directory" className="hover:text-[var(--accent-strong)] transition-colors">
+            <Link
+              href="/directory"
+              className="hover:text-[var(--accent-strong)] transition-colors"
+            >
               Browse directory
             </Link>
-            <Link href="/join" className="hover:text-[var(--accent-strong)] transition-colors">
+            <Link
+              href="/join"
+              className="hover:text-[var(--accent-strong)] transition-colors"
+            >
               Add your listing
             </Link>
             <a
@@ -64,7 +75,8 @@ export function SiteFooter() {
           </div>
         </div>
         <p className="mt-8 text-xs text-[var(--muted)]">
-          Member details shared only within the Sangh community. Contact the office before reproducing any data.
+          Member details shared only within the Sangh community. Contact the
+          office before reproducing any data.
         </p>
       </div>
     </footer>
