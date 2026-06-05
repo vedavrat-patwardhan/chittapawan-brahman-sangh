@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils/cn";
 import { PhoneField } from "@/components/phone-field";
 import { MultiSelect, SearchableSelect } from "@/components/select-field";
+import { BYPASS_FORM_VALIDATION } from "@/lib/feature-flags";
 
 /* ── Step manifest ─────────────────────────────────────────────────────── */
 const STEPS = [
@@ -220,6 +221,8 @@ export function MemberIntakeForm() {
   }
 
   function validateCurrentStep(): boolean {
+    if (BYPASS_FORM_VALIDATION) return true;
+
     const form = formRef.current;
     if (!form) return true;
 
@@ -298,6 +301,16 @@ export function MemberIntakeForm() {
     >
       {/* Page header */}
       <div className="mb-8">
+        {BYPASS_FORM_VALIDATION && (
+          <div
+            role="status"
+            className="mb-5 rounded-xl border border-[color-mix(in_oklch,var(--accent)_30%,transparent)] bg-[color-mix(in_oklch,var(--accent)_7%,transparent)] px-5 py-4 text-sm text-(--ink-soft)"
+          >
+            <strong className="text-(--ink)">Testing mode:</strong> step validations are
+            temporarily disabled so you can explore every field. Submit will not persist data
+            until the database is connected.
+          </div>
+        )}
         <p className="mb-2 text-[0.68rem] font-semibold tracking-[0.16em] text-(--accent-strong) uppercase">
           Member directory · {STEPS.length}-step intake
         </p>

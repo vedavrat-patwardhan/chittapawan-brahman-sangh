@@ -19,43 +19,33 @@ export const metadata: Metadata = {
 };
 
 type PageProps = {
-  searchParams?: Promise<RawSearchParams>;
+  searchParams?: Promise<RawSearchParams & { demo_submitted?: string }>;
 };
 
 const fi =
   "w-full rounded-[var(--radius-input)] border border-[var(--line)] bg-[var(--surface-card)] px-4 py-2.5 text-sm text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-soft)]";
 
-function ErrorBanner({ message }: { message: string }) {
+function NoticeBanner({
+  title,
+  message,
+  tone = "info",
+}: {
+  title: string;
+  message: string;
+  tone?: "info" | "error";
+}) {
+  const styles =
+    tone === "error"
+      ? "border-[color-mix(in_oklch,var(--risk)_30%,transparent)] bg-[color-mix(in_oklch,var(--risk)_6%,transparent)]"
+      : "border-[color-mix(in_oklch,var(--accent)_30%,transparent)] bg-[color-mix(in_oklch,var(--accent)_7%,transparent)]";
+
   return (
     <div
-      className="mx-auto max-w-6xl px-[var(--hero-pad-inline)] py-10"
-      role="alert"
+      role="status"
+      className={`rounded-[var(--radius-card)] border p-5 text-sm text-[var(--ink)] ${styles}`}
     >
-      <div className="rounded-[var(--radius-card)] border border-[color-mix(in_oklch,var(--risk)_30%,transparent)] bg-[color-mix(in_oklch,var(--risk)_6%,transparent)] p-6 text-sm text-[var(--ink)]">
-        <p className="font-semibold text-[var(--accent-strong)]">
-          Directory unavailable
-        </p>
-        <p className="mt-2 text-[var(--ink-soft)]">{message}</p>
-        <p className="mt-4 text-xs text-[var(--muted)]">
-          Set{" "}
-          <code className="rounded bg-[var(--surface-inset)] px-1">
-            NEXT_PUBLIC_SUPABASE_URL
-          </code>{" "}
-          and{" "}
-          <code className="rounded bg-[var(--surface-inset)] px-1">
-            SUPABASE_SECRET_KEY
-          </code>{" "}
-          in{" "}
-          <code className="rounded bg-[var(--surface-inset)] px-1">
-            .env.local
-          </code>
-          , then apply the migration in{" "}
-          <code className="rounded bg-[var(--surface-inset)] px-1">
-            supabase/migrations/
-          </code>
-          .
-        </p>
-      </div>
+      <p className="font-semibold text-[var(--accent-strong)]">{title}</p>
+      <p className="mt-2 text-[var(--ink-soft)]">{message}</p>
     </div>
   );
 }
@@ -69,7 +59,14 @@ export default async function DirectoryPage(props: PageProps) {
   const pageRaw = qp(raw.page);
   const page = pageRaw ? Number(pageRaw) : 1;
 
-  let data: Awaited<ReturnType<typeof listMembers>>;
+  let data: Awaited<ReturnType<typeof listMembers>> = {
+    rows: [],
+    total: 0,
+    page: 1,
+    pageCount: 1,
+  };
+  let dbError: string | null = null;
+
   try {
     data = await listMembers({
       search,
@@ -79,10 +76,11 @@ export default async function DirectoryPage(props: PageProps) {
       page: Number.isFinite(page) && page > 0 ? page : 1,
     });
   } catch (e: unknown) {
-    const message =
+    dbError =
       e instanceof Error ? e.message : "Unexpected error reaching Supabase.";
-    return <ErrorBanner message={message} />;
   }
+
+  const demoSubmitted = qp(raw.demo_submitted) === "1";
 
   const baseQuery: Record<string, string | undefined> = {
     search,
@@ -94,6 +92,21 @@ export default async function DirectoryPage(props: PageProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-[var(--hero-pad-inline)] py-10 sm:py-14">
+      {demoSubmitted && (
+        <NoticeBanner
+          title="Demo submission received"
+          message="Form validations are temporarily disabled for testing. Nothing was saved to the database while it is offline."
+        />
+      )}
+
+      {dbError && (
+        <NoticeBanner
+          tone="error"
+          title="Directory data unavailable"
+          message={`${dbError} You can still use Add listing to walk through the intake form while the database is offline.`}
+        />
+      )}
+
       {/* Header row */}
       <div className="motion-rise flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-[var(--ink)] sm:text-4xl">

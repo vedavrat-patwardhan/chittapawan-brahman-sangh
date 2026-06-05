@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Libre_Bodoni, Atkinson_Hyperlegible } from "next/font/google";
 
-import { SiteFooter, SiteHeader } from "@/components/site-shell";
+import { MobileNav, SiteFooter, SiteHeader } from "@/components/site-shell";
 
 import "./globals.css";
 
@@ -51,28 +50,7 @@ export default function RootLayout({
           <SiteFooter />
         </div>
 
-        {/* Mobile floating nav bar */}
-        <div
-          aria-hidden
-          className="pointer-events-none fixed inset-x-0 bottom-0 z-20 sm:hidden"
-        >
-          <div className="flex justify-center px-[var(--hero-pad-inline)] pb-6">
-            <div className="pointer-events-auto flex w-full max-w-xs items-center gap-2 rounded-full bg-[color-mix(in_oklch,var(--surface-card)_85%,transparent)] p-1.5 shadow-[0_4px_24px_-4px_color-mix(in_oklch,var(--accent)_35%,rgba(0,0,0,0.25))] backdrop-blur-xl backdrop-saturate-150">
-              <Link
-                className="flex-1 rounded-full py-2.5 text-center text-sm font-medium text-[var(--ink-soft)] transition-colors hover:text-[var(--ink)]"
-                href="/directory"
-              >
-                Directory
-              </Link>
-              <Link
-                className="flex-1 rounded-full bg-[var(--accent)] py-2.5 text-center text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))]"
-                href="/join"
-              >
-                Join
-              </Link>
-            </div>
-          </div>
-        </div>
+        <MobileNav />
       </body>
     </html>
   );

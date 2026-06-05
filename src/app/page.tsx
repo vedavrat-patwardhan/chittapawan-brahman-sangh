@@ -26,16 +26,16 @@ export default function HomePage() {
           </p>
           <div className="motion-rise-delay-3 mt-8 flex flex-wrap gap-3">
             <Link
-              href="/join"
+              href="/login"
               className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-7 text-sm font-semibold text-[color-mix(in_oklch,white_97%,var(--accent))] shadow-[0_20px_48px_-28px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] focus-visible:ring-focus"
             >
-              Add your listing
+              Sign in to directory
             </Link>
             <Link
-              href="/directory"
+              href="/login?next=/join"
               className="inline-flex min-h-11 items-center rounded-full border border-[var(--line-strong)] bg-[var(--surface-card)] px-7 text-sm font-semibold text-[var(--ink-soft)] transition-[border-color,color,transform] duration-200 hover:border-[var(--accent)] hover:text-[var(--ink)] focus-visible:ring-focus"
             >
-              Browse members
+              Add a new member
             </Link>
           </div>
         </div>
@@ -70,10 +70,10 @@ export default function HomePage() {
               searchable profile — no WhatsApp forwarding, no outdated PDFs.
             </p>
             <Link
-              href="/join"
+              href="/login?next=/join"
               className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--line-strong)] px-5 text-sm font-semibold text-[var(--ink-soft)] transition-colors hover:border-[var(--accent)] hover:text-[var(--ink)] focus-visible:ring-focus"
             >
-              Fill the intake form →
+              Sign in to add a member →
             </Link>
           </div>
 

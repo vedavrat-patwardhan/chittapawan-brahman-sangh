@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { BYPASS_FORM_VALIDATION } from "@/lib/feature-flags";
 import { uploadMemberFile } from "@/lib/public-url";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import {
@@ -30,7 +31,7 @@ export async function submitDirectoryMember(
   _prev: SubmitMemberState,
   fd: FormData,
 ): Promise<SubmitMemberState> {
-  if (fd.get("consent_share") !== "on") {
+  if (!BYPASS_FORM_VALIDATION && fd.get("consent_share") !== "on") {
     return {
       message:
         "Please confirm consent to share your listing with verified group members.",
@@ -104,6 +105,10 @@ export async function submitDirectoryMember(
     portfolio_paths: portfolio_paths.length ? portfolio_paths : undefined,
     visiting_card_path,
   };
+
+  if (BYPASS_FORM_VALIDATION) {
+    redirect("/directory?demo_submitted=1");
+  }
 
   const parsed = directoryMemberInsertSchema.safeParse({
     ...raw,

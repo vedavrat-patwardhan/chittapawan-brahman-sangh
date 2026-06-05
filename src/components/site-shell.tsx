@@ -1,6 +1,11 @@
 import Link from "next/link";
 
-export function SiteHeader() {
+import { logout } from "@/app/actions/auth";
+import { getSession } from "@/lib/auth/session";
+
+export async function SiteHeader() {
+  const session = await getSession();
+
   return (
     <header
       className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color-mix(in_oklch,var(--surface-card)_85%,transparent)]"
@@ -20,21 +25,70 @@ export function SiteHeader() {
         </Link>
 
         <nav className="flex shrink-0 items-center gap-2 sm:gap-3">
+          {session ? (
+            <>
+              <Link
+                className="rounded-full px-3 py-2 text-sm font-medium text-[var(--ink-soft)] transition-[color,transform] duration-200 ease-[var(--ease-out-expo)] hover:text-[var(--ink)] active:scale-[0.98] sm:px-4"
+                href="/directory"
+              >
+                Directory
+              </Link>
+              <Link
+                className="rounded-full bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))] shadow-[0_8px_24px_-14px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:bg-[var(--accent-strong)] active:scale-[0.98] sm:px-4"
+                href="/join"
+              >
+                Add member
+              </Link>
+              <form action={logout}>
+                <button
+                  type="submit"
+                  className="rounded-full border border-[var(--line-strong)] px-3 py-2 text-sm font-medium text-[var(--ink-soft)] transition-[border-color,color] duration-200 hover:border-[var(--accent)] hover:text-[var(--ink)] sm:px-4"
+                >
+                  Log out
+                </button>
+              </form>
+            </>
+          ) : (
+            <Link
+              className="rounded-full bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))] shadow-[0_8px_24px_-14px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:bg-[var(--accent-strong)] active:scale-[0.98] sm:px-4"
+              href="/login"
+            >
+              Sign in
+            </Link>
+          )}
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+export async function MobileNav() {
+  const session = await getSession();
+
+  if (!session) return null;
+
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-20 sm:hidden"
+    >
+      <div className="flex justify-center px-[var(--hero-pad-inline)] pb-6">
+        <div className="pointer-events-auto flex w-full max-w-xs items-center gap-2 rounded-full bg-[color-mix(in_oklch,var(--surface-card)_85%,transparent)] p-1.5 shadow-[0_4px_24px_-4px_color-mix(in_oklch,var(--accent)_35%,rgba(0,0,0,0.25))] backdrop-blur-xl backdrop-saturate-150">
           <Link
-            className="rounded-full px-3 py-2 text-sm font-medium text-[var(--ink-soft)] transition-[color,transform] duration-200 ease-[var(--ease-out-expo)] hover:text-[var(--ink)] active:scale-[0.98] sm:px-4"
+            className="flex-1 rounded-full py-2.5 text-center text-sm font-medium text-[var(--ink-soft)] transition-colors hover:text-[var(--ink)]"
             href="/directory"
           >
             Directory
           </Link>
           <Link
-            className="rounded-full bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))] shadow-[0_8px_24px_-14px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:bg-[var(--accent-strong)] active:scale-[0.98] sm:px-4"
+            className="flex-1 rounded-full bg-[var(--accent)] py-2.5 text-center text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))]"
             href="/join"
           >
-            Join directory
+            Add
           </Link>
-        </nav>
+        </div>
       </div>
-    </header>
+    </div>
   );
 }
 
@@ -53,16 +107,10 @@ export function SiteFooter() {
           </div>
           <div className="flex flex-col gap-1 text-sm text-[var(--ink-soft)]">
             <Link
-              href="/directory"
+              href="/login"
               className="hover:text-[var(--accent-strong)] transition-colors"
             >
-              Browse directory
-            </Link>
-            <Link
-              href="/join"
-              className="hover:text-[var(--accent-strong)] transition-colors"
-            >
-              Add your listing
+              Sign in
             </Link>
             <a
               href="https://www.nasikchitpavan.org"
