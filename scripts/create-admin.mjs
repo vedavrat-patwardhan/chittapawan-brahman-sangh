@@ -41,7 +41,12 @@ try {
         active: true,
         updated_at: now,
       },
-      $setOnInsert: { email, created_at: now, last_login_at: null },
+      $setOnInsert: {
+        email,
+        created_at: now,
+        last_login_at: null,
+        session_version: 1,
+      },
     },
     { upsert: true },
   );

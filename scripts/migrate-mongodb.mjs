@@ -46,6 +46,10 @@ try {
     { status: { $exists: false } },
     [{ $set: { status: "approved", updated_at: { $ifNull: ["$updated_at", "$created_at"] }, schema_version: 3 } }],
   );
+  await admins.updateMany(
+    { session_version: { $exists: false } },
+    { $set: { session_version: 1 } },
+  );
 
   let normalizedCount = 0;
   let operations = [];

@@ -30,6 +30,7 @@ export type DirectoryAdminDocument = {
   created_at: Date;
   updated_at: Date;
   last_login_at: Date | null;
+  session_version?: number;
 };
 
 export type RateLimitDocument = {

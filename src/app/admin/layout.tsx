@@ -40,7 +40,10 @@ export default async function AdminLayout({
             </Link>
           </nav>
           <p className="text-xs text-[var(--muted)]">
-            Signed in as <span className="font-semibold text-[var(--ink-soft)]">{session.name}</span>
+            Signed in as{" "}
+            <Link href="/admin/profile" className="font-semibold text-[var(--ink-soft)] hover:text-[var(--accent-strong)] hover:underline">
+              {session.name}
+            </Link>
           </p>
         </div>
       </div>

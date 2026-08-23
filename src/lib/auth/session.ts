@@ -17,10 +17,11 @@ export type Session = {
   email: string;
   name: string;
   role: "admin";
+  session_version: number;
 };
 
 type SessionPayload = Session & {
-  version: 1;
+  version: 2;
   expires_at: number;
 };
 
@@ -33,7 +34,7 @@ function sign(encodedPayload: string): string {
 function encodeSession(session: Session): string {
   const payload: SessionPayload = {
     ...session,
-    version: 1,
+    version: 2,
     expires_at: Date.now() + SESSION_MAX_AGE_SECONDS * 1000,
   };
   const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -57,11 +58,12 @@ function decodeSession(token: string): SessionPayload | null {
       Buffer.from(encoded, "base64url").toString("utf8"),
     ) as Partial<SessionPayload>;
     if (
-      value.version !== 1 ||
+      value.version !== 2 ||
       value.role !== "admin" ||
       typeof value.id !== "string" ||
       typeof value.email !== "string" ||
       typeof value.name !== "string" ||
+      typeof value.session_version !== "number" ||
       typeof value.expires_at !== "number" ||
       value.expires_at <= Date.now()
     ) {
@@ -88,6 +90,7 @@ export const getSession = cache(async function getSession(): Promise<Session | n
       email: environmentAdmin.email,
       name: environmentAdmin.name,
       role: "admin",
+      session_version: 1,
     };
   }
 
@@ -97,14 +100,17 @@ export const getSession = cache(async function getSession(): Promise<Session | n
     const admins = await adminsCollection();
     const admin = await admins.findOne(
       { _id: id, active: true },
-      { projection: { email: 1, name: 1 } },
+      { projection: { email: 1, name: 1, session_version: 1 } },
     );
     if (!admin) return null;
+    const sessionVersion = admin.session_version ?? 1;
+    if (payload.session_version !== sessionVersion) return null;
     return {
       id: admin._id.toString(),
       email: admin.email,
       name: admin.name,
       role: "admin",
+      session_version: sessionVersion,
     };
   } catch {
     return null;
