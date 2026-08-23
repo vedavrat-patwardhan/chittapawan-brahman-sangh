@@ -18,7 +18,7 @@ try {
       { [field]: "" },
     ]),
   };
-  const [total, pending, approved, rejected, legacy, invalidStatus, missingRequired, uploadCount, indexes] = await Promise.all([
+  const [total, pending, approved, rejected, legacy, invalidStatus, missingRequired, missingNormalizedIdentity, possibleDuplicates, uploadCount, indexes] = await Promise.all([
     members.countDocuments(),
     members.countDocuments({ status: "pending" }),
     members.countDocuments({ status: "approved" }),
@@ -26,6 +26,14 @@ try {
     members.countDocuments({ status: { $exists: false } }),
     members.countDocuments({ status: { $exists: true, $nin: ["pending", "approved", "rejected"] } }),
     members.countDocuments(missingRequiredFilter),
+    members.countDocuments({
+      $or: [
+        { email_normalized: { $exists: false } },
+        { contact_number_normalized: { $exists: false } },
+        { business_name_normalized: { $exists: false } },
+      ],
+    }),
+    members.countDocuments({ duplicate_risk: true }),
     uploads.countDocuments(),
     members.indexes(),
   ]);
@@ -33,11 +41,12 @@ try {
   console.log(JSON.stringify({
     database: dbName,
     listings: { total, pending, approved, rejected, legacyWithoutStatus: legacy },
-    integrity: { invalidStatus, missingRequiredFields: missingRequired },
+    integrity: { invalidStatus, missingRequiredFields: missingRequired, missingNormalizedIdentity },
+    reviewSignals: { possibleDuplicates },
     uploads: uploadCount,
     indexes: indexes.map((index) => index.name),
   }, null, 2));
-  if (invalidStatus || missingRequired) process.exitCode = 1;
+  if (invalidStatus || missingRequired || missingNormalizedIdentity) process.exitCode = 1;
 } catch {
   console.error("MongoDB audit could not connect. Check that the Atlas cluster is active and this machine is in the project's IP access list.");
   process.exitCode = 1;

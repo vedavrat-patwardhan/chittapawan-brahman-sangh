@@ -1,6 +1,12 @@
 import type { Filter } from "mongodb";
 import { cache } from "react";
 
+import {
+  normalizeBusinessName,
+  normalizeEmail,
+  normalizePhone,
+  normalizedMemberIdentity,
+} from "@/lib/member-normalization";
 import { membersCollection, parseObjectId } from "@/lib/mongodb";
 import type { DirectoryMemberInsertInput } from "@/lib/validation/member.schema";
 import {
@@ -8,6 +14,8 @@ import {
   mapMemberRow,
   type AdminApplicationListItem,
   type DirectoryMemberDocument,
+  type DuplicateCandidate,
+  type DuplicateMatchField,
   type ListingStatus,
   type MemberListItem,
   type MemberReviewer,
@@ -145,6 +153,11 @@ export async function insertMember(
   payload: DirectoryMemberInsertInput,
 ): Promise<string> {
   const members = await membersCollection();
+  const identity = normalizedMemberIdentity(payload);
+  const duplicateCandidates = await findPotentialDuplicates(payload);
+  const duplicateMatchFields = Array.from(
+    new Set(duplicateCandidates.flatMap((candidate) => candidate.matched_on)),
+  );
   const result = await members.insertOne({
     created_at: new Date(),
     updated_at: new Date(),
@@ -153,7 +166,10 @@ export async function insertMember(
     reviewed_by: null,
     admin_note: null,
     rejection_reason: null,
-    schema_version: 2,
+    schema_version: 3,
+    ...identity,
+    duplicate_risk: duplicateCandidates.length > 0,
+    duplicate_match_fields: duplicateMatchFields,
     full_name: payload.full_name,
     business_name: payload.business_name,
     profile_photo_path: payload.profile_photo_path ?? null,
@@ -188,6 +204,22 @@ export async function insertMember(
     referred_by: payload.referred_by ?? null,
     consent_share: payload.consent_share,
   });
+  if (duplicateCandidates.length) {
+    await members.bulkWrite(
+      duplicateCandidates.map((candidate) => ({
+        updateOne: {
+          filter: { _id: parseObjectId(candidate.id)! },
+          update: {
+            $set: { duplicate_risk: true },
+            $addToSet: {
+              duplicate_match_fields: { $each: candidate.matched_on },
+            },
+          },
+        },
+      })),
+      { ordered: false },
+    );
+  }
   return result.insertedId.toString();
 }
 
@@ -256,6 +288,10 @@ export async function listApplications(
           typeof serialized.reviewed_at === "string"
             ? serialized.reviewed_at
             : null,
+        duplicate_risk: serialized.duplicate_risk === true,
+        duplicate_match_fields: Array.isArray(serialized.duplicate_match_fields)
+          ? (serialized.duplicate_match_fields as DuplicateMatchField[])
+          : [],
       };
     }),
     total,
@@ -285,6 +321,96 @@ export async function getAdminApplicationById(
   return doc ? serializeMember(doc) : null;
 }
 
+type DuplicateIdentityInput = Pick<
+  DirectoryMemberDocument,
+  "email" | "contact_number" | "business_name"
+>;
+
+export async function findPotentialDuplicates(
+  input: DuplicateIdentityInput,
+  excludeId?: string,
+): Promise<DuplicateCandidate[]> {
+  const identity = normalizedMemberIdentity(input);
+  const clauses: Filter<DirectoryMemberDocument>[] = [
+    { email_normalized: identity.email_normalized },
+    { contact_number_normalized: identity.contact_number_normalized },
+    { business_name_normalized: identity.business_name_normalized },
+    {
+      email: {
+        $regex: `^${escapeRegex(input.email)}$`,
+        $options: "i",
+      },
+    },
+    {
+      business_name: {
+        $regex: `^${escapeRegex(input.business_name)}$`,
+        $options: "i",
+      },
+    },
+  ];
+  if (input.contact_number.trim()) {
+    clauses.push({ contact_number: input.contact_number.trim() });
+  }
+
+  const oid = excludeId ? parseObjectId(excludeId) : null;
+  const duplicateQuery: Filter<DirectoryMemberDocument> = { $or: clauses };
+  const query: Filter<DirectoryMemberDocument> = oid
+    ? { $and: [{ _id: { $ne: oid } }, duplicateQuery] }
+    : duplicateQuery;
+  const members = await membersCollection();
+  const docs = await members
+    .find(query, {
+      projection: {
+        full_name: 1,
+        business_name: 1,
+        email: 1,
+        contact_number: 1,
+        status: 1,
+      },
+    })
+    .sort({ created_at: -1 })
+    .limit(10)
+    .toArray();
+
+  return docs.map((doc) => {
+    const matchedOn: DuplicateMatchField[] = [];
+    if (normalizeEmail(doc.email) === identity.email_normalized) {
+      matchedOn.push("email");
+    }
+    if (normalizePhone(doc.contact_number) === identity.contact_number_normalized) {
+      matchedOn.push("phone");
+    }
+    if (normalizeBusinessName(doc.business_name) === identity.business_name_normalized) {
+      matchedOn.push("business_name");
+    }
+    return {
+      id: doc._id.toString(),
+      full_name: doc.full_name,
+      business_name: doc.business_name,
+      status: effectiveListingStatus(doc.status),
+      matched_on: matchedOn,
+    };
+  });
+}
+
+export async function exportApplications(
+  filters: Pick<ApplicationListFilters, "search" | "status">,
+): Promise<Array<Record<string, unknown>>> {
+  const clauses = [
+    applicationStatusFilter(filters.status),
+    searchFilter(filters.search),
+  ].filter((clause) => Object.keys(clause).length > 0);
+  const query: Filter<DirectoryMemberDocument> =
+    clauses.length === 0
+      ? {}
+      : clauses.length === 1
+        ? clauses[0]!
+        : { $and: clauses };
+  const members = await membersCollection();
+  const docs = await members.find(query).sort({ created_at: -1 }).toArray();
+  return docs.map(serializeMember);
+}
+
 export async function reviewApplication(input: {
   id: string;
   status: Exclude<ListingStatus, "pending">;
@@ -309,7 +435,7 @@ export async function reviewApplication(input: {
           input.status === "rejected"
             ? input.rejectionReason?.trim() || null
             : null,
-        schema_version: 2,
+        schema_version: 3,
       },
     },
   );

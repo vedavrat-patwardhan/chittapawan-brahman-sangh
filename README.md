@@ -9,6 +9,9 @@ A community business directory built with Next.js 16 and MongoDB. Business owner
 - `/directory` — public search of approved listings only
 - `/admin` — protected review queue with pending, approved, and rejected states
 - `/admin/applications/[id]` — full application, private notes, approve/reject controls
+- `/admin/export` — authenticated CSV export of the active queue/search
+
+New submissions are normalized and compared by email, phone, and business name. Similar records are marked as possible duplicates for administrator review but are never rejected automatically.
 
 Legacy MongoDB records without a `status` are treated as approved so the Supabase migration does not make existing listings disappear. Run the idempotent migration below to backfill them explicitly.
 
@@ -42,7 +45,7 @@ Legacy MongoDB records without a `status` are treated as approved so the Supabas
 - `directory_admins` — scrypt password hashes and active status
 - `rate_limits` — short-lived login/submission throttles (TTL indexed)
 
-New applications use `schema_version: 2` and begin with `status: "pending"`. Review metadata records the timestamp and administrator identity. Pending/rejected uploads are available only to signed-in admins; uploads linked to approved listings can be served publicly.
+New applications use `schema_version: 3` and begin with `status: "pending"`. Review metadata records the timestamp and administrator identity. Pending/rejected uploads are available only to signed-in admins; uploads linked to approved listings can be served publicly.
 
 ## Free deployment
 

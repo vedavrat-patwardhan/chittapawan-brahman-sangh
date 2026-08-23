@@ -42,11 +42,12 @@ export default async function AdminDashboardPage(props: PageProps) {
   const raw = (await props.searchParams) ?? {};
   const search = qp(raw.search);
   const requestedStatus = qp(raw.status);
-  const status: ListingStatus | "all" = LISTING_STATUSES.includes(
-    requestedStatus as ListingStatus,
-  )
-    ? (requestedStatus as ListingStatus)
-    : "pending";
+  const status: ListingStatus | "all" =
+    requestedStatus === "all"
+      ? "all"
+      : LISTING_STATUSES.includes(requestedStatus as ListingStatus)
+        ? (requestedStatus as ListingStatus)
+        : "pending";
   const parsedPage = Number(qp(raw.page) ?? "1");
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
@@ -77,6 +78,10 @@ export default async function AdminDashboardPage(props: PageProps) {
     { value: "rejected", label: "Rejected", count: counts.rejected },
     { value: "all", label: "All", count: counts.all },
   ];
+  const exportParams = new URLSearchParams();
+  if (status !== "all") exportParams.set("status", status);
+  if (search) exportParams.set("search", search);
+  const exportHref = `/admin/export?${exportParams.toString()}`;
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-[var(--hero-pad-inline)] py-10 sm:py-14">
@@ -92,12 +97,20 @@ export default async function AdminDashboardPage(props: PageProps) {
             New submissions stay private until an administrator verifies and publishes them.
           </p>
         </div>
-        <Link
-          href="/join"
-          className="inline-flex min-h-10 w-max items-center rounded-full border border-[var(--line-strong)] px-5 text-sm font-semibold text-[var(--ink-soft)] transition-colors hover:border-[var(--accent)] hover:text-[var(--ink)]"
-        >
-          Open public form ↗
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={exportHref}
+            className="inline-flex min-h-10 w-max items-center rounded-full bg-[var(--ink)] px-5 text-sm font-semibold text-[var(--surface-card)] transition-opacity hover:opacity-85"
+          >
+            Export CSV ↓
+          </a>
+          <Link
+            href="/join"
+            className="inline-flex min-h-10 w-max items-center rounded-full border border-[var(--line-strong)] px-5 text-sm font-semibold text-[var(--ink-soft)] transition-colors hover:border-[var(--accent)] hover:text-[var(--ink)]"
+          >
+            Open public form ↗
+          </Link>
+        </div>
       </div>
 
       {dbError ? (
@@ -181,6 +194,11 @@ export default async function AdminDashboardPage(props: PageProps) {
                   <td className="px-5 py-4">
                     <p className="font-bold text-[var(--ink)]">{row.full_name}</p>
                     <p className="mt-0.5 text-xs text-[var(--muted)]">{row.email}</p>
+                    {row.duplicate_risk ? (
+                      <p className="mt-1 text-[0.68rem] font-bold text-[var(--risk)]">
+                        Possible duplicate
+                      </p>
+                    ) : null}
                   </td>
                   <td className="px-5 py-4">
                     <p className="font-semibold text-[var(--ink-soft)]">{row.business_name}</p>

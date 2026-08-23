@@ -3,7 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ReviewPanel } from "@/components/review-panel";
-import { getAdminApplicationById } from "@/lib/directory-queries";
+import {
+  findPotentialDuplicates,
+  getAdminApplicationById,
+} from "@/lib/directory-queries";
 import { storagePublicUrl } from "@/lib/uploads";
 import { effectiveListingStatus, type MemberReviewer } from "@/types/member";
 
@@ -67,6 +70,15 @@ export default async function AdminApplicationDetailPage(props: PageProps) {
   const row = await getAdminApplicationById(id).catch(() => null);
   if (!row) notFound();
 
+  const duplicates = await findPotentialDuplicates(
+    {
+      email: text(row.email),
+      contact_number: text(row.contact_number),
+      business_name: text(row.business_name),
+    },
+    id,
+  ).catch(() => []);
+
   const status = effectiveListingStatus(row.status);
   const reviewer = row.reviewed_by as MemberReviewer | null | undefined;
   const profileUrl = storagePublicUrl(text(row.profile_photo_path));
@@ -99,6 +111,37 @@ export default async function AdminApplicationDetailPage(props: PageProps) {
             ) : null}
           </div>
         </div>
+
+        {duplicates.length ? (
+          <section className="rounded-[var(--radius-card)] border border-[color-mix(in_oklch,var(--risk)_32%,transparent)] bg-[color-mix(in_oklch,var(--risk)_6%,transparent)] p-5">
+            <p className="text-[0.68rem] font-bold tracking-[0.12em] text-[var(--risk)] uppercase">
+              Possible duplicate
+            </p>
+            <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold text-[var(--ink)]">
+              {duplicates.length} similar {duplicates.length === 1 ? "listing" : "listings"} found
+            </h2>
+            <p className="mt-2 text-sm text-[var(--ink-soft)]">
+              This is a review signal only. The owner may operate multiple legitimate businesses.
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              {duplicates.map((duplicate) => (
+                <Link
+                  key={duplicate.id}
+                  href={`/admin/applications/${duplicate.id}`}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[color-mix(in_oklch,var(--risk)_22%,transparent)] bg-[var(--surface-card)] px-4 py-3 text-sm hover:border-[var(--risk)]"
+                >
+                  <span>
+                    <strong className="text-[var(--ink)]">{duplicate.business_name}</strong>
+                    <span className="ml-2 text-[var(--muted)]">{duplicate.full_name}</span>
+                  </span>
+                  <span className="text-xs font-bold text-[var(--risk)]">
+                    Matches {duplicate.matched_on.map((field) => field.replaceAll("_", " ")).join(" · ")} →
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <InfoSection title="Applicant & contact" fields={[
           { label: "Full name", value: text(row.full_name) },

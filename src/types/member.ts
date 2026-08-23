@@ -20,6 +20,19 @@ export type AdminApplicationListItem = MemberListItem & {
   status: ListingStatus;
   updated_at: string;
   reviewed_at: string | null;
+  duplicate_risk: boolean;
+  duplicate_match_fields: DuplicateMatchField[];
+};
+
+export const DUPLICATE_MATCH_FIELDS = ["email", "phone", "business_name"] as const;
+export type DuplicateMatchField = (typeof DUPLICATE_MATCH_FIELDS)[number];
+
+export type DuplicateCandidate = {
+  id: string;
+  full_name: string;
+  business_name: string;
+  status: ListingStatus;
+  matched_on: DuplicateMatchField[];
 };
 
 export type MemberReviewer = {
@@ -38,6 +51,11 @@ export type DirectoryMemberDocument = {
   admin_note?: string | null;
   rejection_reason?: string | null;
   schema_version?: number;
+  email_normalized?: string;
+  contact_number_normalized?: string;
+  business_name_normalized?: string;
+  duplicate_risk?: boolean;
+  duplicate_match_fields?: DuplicateMatchField[];
   full_name: string;
   business_name: string;
   profile_photo_path: string | null;
