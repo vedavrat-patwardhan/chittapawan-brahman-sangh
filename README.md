@@ -23,7 +23,7 @@ Legacy MongoDB records without a `status` are treated as approved so the Supabas
 
 ## Local setup
 
-1. Copy `.env.example` to `.env.local` and set `MONGODB_URI`, `MONGODB_DB`, a long random `AUTH_SESSION_SECRET`, and the public `NEXT_PUBLIC_APP_URL` used for canonical URLs and sitemaps.
+1. Copy `.env.example` to `.env.local` and set `MONGODB_URI`, `MONGODB_DB`, a long random `AUTH_SESSION_SECRET`, and the public `NEXT_PUBLIC_APP_URL` used for canonical URLs and sitemaps. Production metadata ignores localhost values and falls back to Vercel's production domain.
 2. Install and normalize the database:
 
    ```bash
