@@ -97,6 +97,59 @@ export const directoryMemberInsertSchema = z.object({
 
 export type DirectoryMemberInsertInput = z.infer<typeof directoryMemberInsertSchema>;
 
+const correctionOptionalText = z.string().trim().max(2_000);
+const correctionOptionalUrl = z
+  .string()
+  .trim()
+  .max(500)
+  .transform((value) => {
+    if (!value) return "";
+    return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  })
+  .refine((value) => {
+    if (!value) return true;
+    try {
+      const url = new URL(value);
+      return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "Enter a valid web address");
+
+export const directoryCorrectionSchema = z.object({
+  full_name: z.string().trim().min(2).max(120),
+  business_name: z.string().trim().min(2).max(160),
+  contact_number: z
+    .string()
+    .trim()
+    .max(30)
+    .min(6, "Contact number is required")
+    .refine((value) => isValidPhoneNumber(value), "Use a full number such as +919876543210"),
+  whatsapp_number: z
+    .string()
+    .trim()
+    .max(30)
+    .refine(
+      (value) => !value || isValidPhoneNumber(value),
+      "Use a full WhatsApp number such as +919876543210",
+    ),
+  email: z.string().trim().email().max(254),
+  city: z.string().trim().min(2).max(120),
+  area_locality: correctionOptionalText,
+  business_category: z.enum(BUSINESS_CATEGORIES),
+  sub_category: z.string().trim().min(2).max(160),
+  products_services: z.string().trim().min(10).max(5_000),
+  business_address: correctionOptionalText,
+  service_area: z.array(z.enum(SERVICE_AREA_OPTIONS)).max(5),
+  website: correctionOptionalUrl,
+  instagram: correctionOptionalText,
+  facebook: correctionOptionalText,
+  linkedin: correctionOptionalText,
+  owner_note: z.string().trim().max(1_000),
+});
+
+export type DirectoryCorrectionInput = z.infer<typeof directoryCorrectionSchema>;
+
 export type DirectoryMemberRow = DirectoryMemberInsertInput & {
   id: string;
   created_at: string;

@@ -28,6 +28,8 @@ try {
   const members = db.collection("directory_members");
   const admins = db.collection("directory_admins");
   const rateLimits = db.collection("rate_limits");
+  const editTokens = db.collection("directory_edit_tokens");
+  const changeRequests = db.collection("directory_change_requests");
   const legacyResult = await members.updateMany(
     { status: { $exists: false } },
     [{ $set: { status: "approved", updated_at: { $ifNull: ["$updated_at", "$created_at"] }, schema_version: 3 } }],
@@ -127,6 +129,12 @@ try {
     admins.createIndex({ email: 1 }, { unique: true }),
     rateLimits.createIndex({ key: 1 }, { unique: true }),
     rateLimits.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 }),
+    editTokens.createIndex({ token_hash: 1 }, { unique: true }),
+    editTokens.createIndex({ member_id: 1, created_at: -1 }),
+    editTokens.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 }),
+    changeRequests.createIndex({ token_id: 1 }, { unique: true }),
+    changeRequests.createIndex({ status: 1, submitted_at: -1 }),
+    changeRequests.createIndex({ member_id: 1, submitted_at: -1 }),
   ]);
   console.log(`MongoDB migration complete. Backfilled ${legacyResult.modifiedCount} legacy listing(s), normalized ${normalizedCount} listing(s), and flagged ${duplicateSignals.size} possible duplicate(s).`);
 } catch {

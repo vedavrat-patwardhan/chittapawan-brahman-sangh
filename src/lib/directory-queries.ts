@@ -393,6 +393,37 @@ export async function findPotentialDuplicates(
   });
 }
 
+export async function refreshDuplicateRisk(id: string): Promise<string[]> {
+  const oid = parseObjectId(id);
+  if (!oid) return [];
+  const members = await membersCollection();
+  const member = await members.findOne(
+    { _id: oid },
+    {
+      projection: {
+        email: 1,
+        contact_number: 1,
+        business_name: 1,
+      },
+    },
+  );
+  if (!member) return [];
+  const candidates = await findPotentialDuplicates(member, id);
+  const matchFields = Array.from(
+    new Set(candidates.flatMap((candidate) => candidate.matched_on)),
+  );
+  await members.updateOne(
+    { _id: oid },
+    {
+      $set: {
+        duplicate_risk: candidates.length > 0,
+        duplicate_match_fields: matchFields,
+      },
+    },
+  );
+  return candidates.map((candidate) => candidate.id);
+}
+
 export async function exportApplications(
   filters: Pick<ApplicationListFilters, "search" | "status">,
 ): Promise<Array<Record<string, unknown>>> {

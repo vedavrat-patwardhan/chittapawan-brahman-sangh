@@ -1,11 +1,13 @@
 import Link from "next/link";
 
 import { requireAdmin } from "@/lib/auth/session";
+import { countPendingChangeRequests } from "@/lib/corrections";
 
 export default async function AdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await requireAdmin();
+  const pendingChanges = await countPendingChangeRequests().catch(() => 0);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -17,6 +19,12 @@ export default async function AdminLayout({
               className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--surface-card)]"
             >
               Review queue
+            </Link>
+            <Link
+              href="/admin/changes"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-[var(--ink-soft)] transition-colors hover:text-[var(--ink)]"
+            >
+              Owner corrections{pendingChanges ? ` (${pendingChanges})` : ""}
             </Link>
             <Link
               href="/directory"

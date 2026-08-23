@@ -35,6 +35,15 @@ export type DuplicateCandidate = {
   matched_on: DuplicateMatchField[];
 };
 
+export const CHANGE_REQUEST_STATUSES = [
+  "pending",
+  "processing",
+  "approved",
+  "rejected",
+] as const;
+export type ChangeRequestStatus = (typeof CHANGE_REQUEST_STATUSES)[number];
+export type DirectoryChangeValue = string | string[] | null;
+
 export type MemberReviewer = {
   admin_id: string;
   email: string;

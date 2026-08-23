@@ -10,6 +10,8 @@ A community business directory built with Next.js 16 and MongoDB. Business owner
 - `/admin` — protected review queue with pending, approved, and rejected states
 - `/admin/applications/[id]` — full application, private notes, approve/reject controls
 - `/admin/export` — authenticated CSV export of the active queue/search
+- `/admin/changes` — protected owner-correction review queue
+- `/update/[token]` — expiring one-time owner correction form
 
 New submissions are normalized and compared by email, phone, and business name. Similar records are marked as possible duplicates for administrator review but are never rejected automatically.
 
@@ -44,6 +46,8 @@ Legacy MongoDB records without a `status` are treated as approved so the Supabas
 - `member_uploads` — images/PDFs stored as separate BSON documents (images are resized and converted to WebP)
 - `directory_admins` — scrypt password hashes and active status
 - `rate_limits` — short-lived login/submission throttles (TTL indexed)
+- `directory_edit_tokens` — SHA-256 hashes of one-time, 14-day correction links
+- `directory_change_requests` — proposed owner changes held separately until admin approval
 
 New applications use `schema_version: 3` and begin with `status: "pending"`. Review metadata records the timestamp and administrator identity. Pending/rejected uploads are available only to signed-in admins; uploads linked to approved listings can be served publicly.
 

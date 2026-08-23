@@ -6,7 +6,12 @@ import {
   type Db,
 } from "mongodb";
 
-import type { DirectoryMemberDocument } from "@/types/member";
+import type {
+  ChangeRequestStatus,
+  DirectoryMemberDocument,
+  DirectoryChangeValue,
+  MemberReviewer,
+} from "@/types/member";
 
 export type MemberUploadDocument = {
   filename: string;
@@ -32,6 +37,28 @@ export type RateLimitDocument = {
   count: number;
   reset_at: Date;
   expires_at: Date;
+};
+
+export type DirectoryEditTokenDocument = {
+  member_id: ObjectId;
+  token_hash: string;
+  created_at: Date;
+  expires_at: Date;
+  created_by: MemberReviewer;
+  used_at: Date | null;
+  revoked_at: Date | null;
+};
+
+export type DirectoryChangeRequestDocument = {
+  member_id: ObjectId;
+  token_id: ObjectId;
+  submitted_at: Date;
+  status: ChangeRequestStatus;
+  changes: Record<string, DirectoryChangeValue>;
+  owner_note: string | null;
+  reviewed_at: Date | null;
+  reviewed_by: MemberReviewer | null;
+  admin_note: string | null;
 };
 
 const globalForMongo = globalThis as typeof globalThis & {
@@ -86,6 +113,12 @@ async function ensureIndexes(db: Db): Promise<void> {
   const members = db.collection<DirectoryMemberDocument>("directory_members");
   const admins = db.collection<DirectoryAdminDocument>("directory_admins");
   const rateLimits = db.collection<RateLimitDocument>("rate_limits");
+  const editTokens = db.collection<DirectoryEditTokenDocument>(
+    "directory_edit_tokens",
+  );
+  const changeRequests = db.collection<DirectoryChangeRequestDocument>(
+    "directory_change_requests",
+  );
   await Promise.all([
     members.createIndex({ created_at: -1 }),
     members.createIndex({ status: 1, created_at: -1 }),
@@ -99,6 +132,12 @@ async function ensureIndexes(db: Db): Promise<void> {
     admins.createIndex({ email: 1 }, { unique: true }),
     rateLimits.createIndex({ key: 1 }, { unique: true }),
     rateLimits.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 }),
+    editTokens.createIndex({ token_hash: 1 }, { unique: true }),
+    editTokens.createIndex({ member_id: 1, created_at: -1 }),
+    editTokens.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 }),
+    changeRequests.createIndex({ token_id: 1 }, { unique: true }),
+    changeRequests.createIndex({ status: 1, submitted_at: -1 }),
+    changeRequests.createIndex({ member_id: 1, submitted_at: -1 }),
   ]);
 }
 
@@ -124,4 +163,20 @@ export async function rateLimitsCollection(): Promise<
   Collection<RateLimitDocument>
 > {
   return (await getDb()).collection<RateLimitDocument>("rate_limits");
+}
+
+export async function editTokensCollection(): Promise<
+  Collection<DirectoryEditTokenDocument>
+> {
+  return (await getDb()).collection<DirectoryEditTokenDocument>(
+    "directory_edit_tokens",
+  );
+}
+
+export async function changeRequestsCollection(): Promise<
+  Collection<DirectoryChangeRequestDocument>
+> {
+  return (await getDb()).collection<DirectoryChangeRequestDocument>(
+    "directory_change_requests",
+  );
 }

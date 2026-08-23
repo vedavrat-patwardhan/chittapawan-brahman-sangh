@@ -10,6 +10,8 @@ try {
   const db = client.db(dbName);
   const members = db.collection("directory_members");
   const uploads = db.collection("member_uploads");
+  const editTokens = db.collection("directory_edit_tokens");
+  const changeRequests = db.collection("directory_change_requests");
   const required = ["created_at", "full_name", "business_name", "contact_number", "email", "city", "business_category", "products_services"];
   const missingRequiredFilter = {
     $or: required.flatMap((field) => [
@@ -18,7 +20,7 @@ try {
       { [field]: "" },
     ]),
   };
-  const [total, pending, approved, rejected, legacy, invalidStatus, missingRequired, missingNormalizedIdentity, possibleDuplicates, uploadCount, indexes] = await Promise.all([
+  const [total, pending, approved, rejected, legacy, invalidStatus, missingRequired, missingNormalizedIdentity, possibleDuplicates, uploadCount, pendingCorrections, activeCorrectionLinks, indexes] = await Promise.all([
     members.countDocuments(),
     members.countDocuments({ status: "pending" }),
     members.countDocuments({ status: "approved" }),
@@ -35,6 +37,8 @@ try {
     }),
     members.countDocuments({ duplicate_risk: true }),
     uploads.countDocuments(),
+    changeRequests.countDocuments({ status: "pending" }),
+    editTokens.countDocuments({ used_at: null, revoked_at: null, expires_at: { $gt: new Date() } }),
     members.indexes(),
   ]);
 
@@ -43,6 +47,7 @@ try {
     listings: { total, pending, approved, rejected, legacyWithoutStatus: legacy },
     integrity: { invalidStatus, missingRequiredFields: missingRequired, missingNormalizedIdentity },
     reviewSignals: { possibleDuplicates },
+    corrections: { pending: pendingCorrections, activeLinks: activeCorrectionLinks },
     uploads: uploadCount,
     indexes: indexes.map((index) => index.name),
   }, null, 2));

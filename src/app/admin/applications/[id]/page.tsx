@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ReviewPanel } from "@/components/review-panel";
+import { CorrectionLinkPanel } from "@/components/correction-link-panel";
 import {
   findPotentialDuplicates,
   getAdminApplicationById,
@@ -214,6 +215,8 @@ export default async function AdminApplicationDetailPage(props: PageProps) {
             <ReviewPanel applicationId={id} defaultNote={text(row.admin_note)} defaultReason={text(row.rejection_reason)} />
           </div>
         </section>
+
+        {status === "approved" ? <CorrectionLinkPanel memberId={id} /> : null}
 
         <section className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface-inset)] p-5 text-xs leading-relaxed text-[var(--muted)]">
           <p><strong className="text-[var(--ink-soft)]">Submitted:</strong> {new Date(text(row.created_at)).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</p>
