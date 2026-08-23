@@ -18,7 +18,10 @@ export default function GlobalError({
 
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body className="relative">
+      <body
+        className="relative"
+        style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif" }}
+      >
         <title>Something went wrong · Chittapawan Brahman Sangh</title>
         <main className="relative isolate flex min-h-screen items-center overflow-hidden px-5 py-12">
           <div
@@ -38,7 +41,7 @@ export default function GlobalError({
             <p className="mt-7 text-[0.68rem] font-bold tracking-[0.16em] text-[var(--risk)] uppercase">
               Site interruption
             </p>
-            <h1 className="mt-3 font-serif text-4xl font-bold tracking-tight text-[var(--ink)] sm:text-5xl">
+            <h1 className="mt-3 text-4xl font-bold tracking-tight text-[var(--ink)] sm:text-5xl">
               We could not load the site.
             </h1>
             <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-[var(--ink-soft)]">

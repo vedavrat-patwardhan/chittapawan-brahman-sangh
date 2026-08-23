@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Libre_Bodoni, Atkinson_Hyperlegible } from "next/font/google";
+import { Atkinson_Hyperlegible } from "next/font/google";
 
 import { MobileNav, SiteFooter, SiteHeader } from "@/components/site-shell";
 import {
@@ -61,12 +61,6 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-const libreDisplay = Libre_Bodoni({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["400", "700"],
-});
-
 const atkinsonBody = Atkinson_Hyperlegible({
   subsets: ["latin"],
   variable: "--font-body",
@@ -108,7 +102,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${libreDisplay.variable} ${atkinsonBody.variable}`}
+      className={atkinsonBody.variable}
     >
       <body className="relative">
         <script
