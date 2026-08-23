@@ -21,7 +21,16 @@ const dbName = process.env.MONGODB_DB?.trim() || "chitpavan";
 if (!uri) throw new Error("Missing MONGODB_URI in .env.local or .env");
 if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error("Pass a valid --email address");
 if (name.length < 2) throw new Error("Pass the administrator's --name");
-if (password.length < 12) throw new Error("Set ADMIN_PASSWORD to at least 12 characters");
+if (
+  password.length < 8 ||
+  !/[a-z]/.test(password) ||
+  !/[A-Z]/.test(password) ||
+  !/[^A-Za-z0-9\s]/.test(password)
+) {
+  throw new Error(
+    "Set ADMIN_PASSWORD to 8+ characters with uppercase, lowercase, and a symbol",
+  );
+}
 
 const salt = randomBytes(16).toString("hex");
 const passwordHash = Buffer.from(await scrypt(password, salt, 64)).toString("hex");

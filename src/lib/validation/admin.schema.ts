@@ -11,12 +11,11 @@ export const adminPasswordSchema = z
     current_password: z.string().min(1, "Current password is required").max(256),
     new_password: z
       .string()
-      .min(14, "Use at least 14 characters")
+      .min(8, "Use at least 8 characters")
       .max(256)
       .regex(/[a-z]/, "Add a lowercase letter")
       .regex(/[A-Z]/, "Add an uppercase letter")
-      .regex(/[0-9]/, "Add a number")
-      .regex(/[^A-Za-z0-9]/, "Add a symbol"),
+      .regex(/[^A-Za-z0-9\s]/, "Add a symbol"),
     confirm_password: z.string().max(256),
   })
   .refine((value) => value.new_password === value.confirm_password, {

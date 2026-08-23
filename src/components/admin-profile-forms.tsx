@@ -107,14 +107,14 @@ export function AdminProfileForms({
         </label>
         <label className="flex flex-col gap-1.5 text-sm font-semibold text-[var(--ink)]">
           New password
-          <input name="new_password" type="password" autoComplete="new-password" minLength={14} required className="field-input" />
+          <input name="new_password" type="password" autoComplete="new-password" minLength={8} required className="field-input" />
         </label>
         <label className="flex flex-col gap-1.5 text-sm font-semibold text-[var(--ink)]">
           Confirm new password
-          <input name="confirm_password" type="password" autoComplete="new-password" minLength={14} required className="field-input" />
+          <input name="confirm_password" type="password" autoComplete="new-password" minLength={8} required className="field-input" />
         </label>
         <p className="text-xs leading-relaxed text-[var(--muted)]">
-          Use 14+ characters with uppercase, lowercase, a number, and a symbol.
+          Use 8+ characters with one uppercase letter, one lowercase letter, and one symbol.
         </p>
         <button type="submit" disabled={passwordPending} className="mt-auto inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--accent)] px-6 text-sm font-bold text-white transition-[transform,background-color,opacity] hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] disabled:opacity-55">
           {passwordPending ? "Changing…" : "Change password"}
