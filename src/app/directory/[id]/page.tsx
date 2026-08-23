@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-/* eslint-disable @next/next/no-img-element -- Supabase storage hosts vary per deployment */
+/* eslint-disable @next/next/no-img-element -- member uploads are served from /api/uploads */
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { getMemberById } from "@/lib/directory-queries";
-import { storagePublicUrl } from "@/lib/public-url";
+import { storagePublicUrl } from "@/lib/uploads";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +22,19 @@ function whatsAppLink(value: string) {
   const digits = value.replace(/\D/g, "");
   if (!digits) return null;
   return `https://wa.me/${digits}`;
+}
+
+function safeHttpUrl(value: unknown): string | null {
+  const candidate = asString(value);
+  if (!candidate) return null;
+  try {
+    const url = new URL(candidate);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 function DetailBlock({
@@ -87,6 +100,8 @@ export default async function MemberDetailPage(props: PageProps) {
     .map((p) => storagePublicUrl(p))
     .filter((u): u is string => Boolean(u));
   const visitingUrl = storagePublicUrl(asString(row.visiting_card_path));
+  const mapsUrl = safeHttpUrl(row.google_maps_link);
+  const websiteUrl = safeHttpUrl(row.website);
   const wa = asString(row.whatsapp_number);
   const waHref = wa ? whatsAppLink(wa) : null;
 
@@ -191,7 +206,7 @@ export default async function MemberDetailPage(props: PageProps) {
         <DetailBlock title="Location & reach">
           <Line label="Address" value={asString(row.business_address)} />
           <Line label="Service area" value={asStringArray(row.service_area).join(" · ") || null} />
-          {asString(row.google_maps_link) ? (
+          {mapsUrl ? (
             <p>
               <span className="text-xs font-semibold tracking-wide text-[var(--muted)] uppercase">
                 Maps
@@ -199,7 +214,7 @@ export default async function MemberDetailPage(props: PageProps) {
               <br />
               <a
                 className="text-[var(--accent-strong)] underline-offset-4 hover:underline"
-                href={asString(row.google_maps_link)}
+                href={mapsUrl}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -210,7 +225,7 @@ export default async function MemberDetailPage(props: PageProps) {
         </DetailBlock>
 
         <DetailBlock title="Presence">
-          {asString(row.website) ? (
+          {websiteUrl ? (
             <p>
               <span className="text-xs font-semibold tracking-wide text-[var(--muted)] uppercase">
                 Website
@@ -218,11 +233,7 @@ export default async function MemberDetailPage(props: PageProps) {
               <br />
               <a
                 className="break-all text-[var(--accent-strong)] underline-offset-4 hover:underline"
-                href={
-                  asString(row.website).startsWith("http")
-                    ? asString(row.website)
-                    : `https://${asString(row.website)}`
-                }
+                href={websiteUrl}
                 target="_blank"
                 rel="noreferrer"
               >

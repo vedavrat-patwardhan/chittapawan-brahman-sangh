@@ -6,16 +6,20 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "admin:create": "node --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/create-admin.mjs",
+    "mongodb:migrate": "node --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/migrate-mongodb.mjs",
+    "mongodb:audit": "node --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/audit-mongodb.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.105.3",
     "clsx": "^2.1.1",
     "country-state-city": "^3.2.1",
-    "next": "16.2.4",
+    "mongodb": "^7.5.0",
+    "next": "^16.3.2",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-phone-number-input": "^3.4.16",
+    "sharp": "^0.35.3",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.4.3"
   },
@@ -25,7 +29,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.4",
+    "eslint-config-next": "^16.3.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

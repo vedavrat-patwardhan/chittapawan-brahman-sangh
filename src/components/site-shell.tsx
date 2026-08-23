@@ -25,19 +25,25 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <Link
+            className="hidden rounded-full px-3 py-2 text-sm font-medium text-[var(--ink-soft)] transition-[color,transform] duration-200 ease-[var(--ease-out-expo)] hover:text-[var(--ink)] active:scale-[0.98] sm:inline-flex sm:px-4"
+            href="/directory"
+          >
+            Directory
+          </Link>
+          <Link
+            className="rounded-full bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))] shadow-[0_8px_24px_-14px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:bg-[var(--accent-strong)] active:scale-[0.98] sm:px-4"
+            href="/join"
+          >
+            Apply
+          </Link>
           {session ? (
             <>
               <Link
-                className="rounded-full px-3 py-2 text-sm font-medium text-[var(--ink-soft)] transition-[color,transform] duration-200 ease-[var(--ease-out-expo)] hover:text-[var(--ink)] active:scale-[0.98] sm:px-4"
-                href="/directory"
+                className="hidden rounded-full border border-[var(--line-strong)] px-3 py-2 text-sm font-semibold text-[var(--ink-soft)] transition-colors hover:border-[var(--accent)] hover:text-[var(--ink)] md:inline-flex"
+                href="/admin"
               >
-                Directory
-              </Link>
-              <Link
-                className="rounded-full bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))] shadow-[0_8px_24px_-14px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:bg-[var(--accent-strong)] active:scale-[0.98] sm:px-4"
-                href="/join"
-              >
-                Add member
+                Admin
               </Link>
               <form action={logout}>
                 <button
@@ -50,10 +56,10 @@ export async function SiteHeader() {
             </>
           ) : (
             <Link
-              className="rounded-full bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))] shadow-[0_8px_24px_-14px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:bg-[var(--accent-strong)] active:scale-[0.98] sm:px-4"
+              className="hidden rounded-full px-3 py-2 text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--ink)] md:inline-flex"
               href="/login"
             >
-              Sign in
+              Admin sign in
             </Link>
           )}
         </nav>
@@ -65,11 +71,8 @@ export async function SiteHeader() {
 export async function MobileNav() {
   const session = await getSession();
 
-  if (!session) return null;
-
   return (
     <div
-      aria-hidden
       className="pointer-events-none fixed inset-x-0 bottom-0 z-20 sm:hidden"
     >
       <div className="flex justify-center px-[var(--hero-pad-inline)] pb-6">
@@ -80,11 +83,19 @@ export async function MobileNav() {
           >
             Directory
           </Link>
+          {session ? (
+            <Link
+              className="flex-1 rounded-full py-2.5 text-center text-sm font-medium text-[var(--ink-soft)] transition-colors hover:text-[var(--ink)]"
+              href="/admin"
+            >
+              Admin
+            </Link>
+          ) : null}
           <Link
             className="flex-1 rounded-full bg-[var(--accent)] py-2.5 text-center text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))]"
             href="/join"
           >
-            Add
+            Apply
           </Link>
         </div>
       </div>
@@ -110,7 +121,7 @@ export function SiteFooter() {
               href="/login"
               className="hover:text-[var(--accent-strong)] transition-colors"
             >
-              Sign in
+              Admin sign in
             </Link>
             <a
               href="https://www.nasikchitpavan.org"
@@ -123,8 +134,8 @@ export function SiteFooter() {
           </div>
         </div>
         <p className="mt-8 text-xs text-[var(--muted)]">
-          Member details shared only within the Sangh community. Contact the
-          office before reproducing any data.
+          Approved details are shared for community networking. Contact the
+          office before reproducing or republishing directory data.
         </p>
       </div>
     </footer>

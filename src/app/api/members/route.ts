@@ -16,7 +16,13 @@ export async function GET(req: NextRequest) {
     });
     return NextResponse.json(result);
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Unexpected error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error(
+      "[api/members] MongoDB query failed:",
+      e instanceof Error ? e.message : "Unknown error",
+    );
+    return NextResponse.json(
+      { error: "Directory data is temporarily unavailable." },
+      { status: 503 },
+    );
   }
 }

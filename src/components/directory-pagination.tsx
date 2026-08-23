@@ -6,9 +6,14 @@ type Props = {
   page: number;
   pageCount: number;
   baseQuery: Record<string, string | undefined>;
+  pathname?: string;
 };
 
-function buildHref(pageNum: number, base: Record<string, string | undefined>) {
+function buildHref(
+  pageNum: number,
+  base: Record<string, string | undefined>,
+  pathname: string,
+) {
   const p = new URLSearchParams();
   for (const [k, val] of Object.entries(base)) {
     if (!val || !val.trim()) continue;
@@ -17,10 +22,15 @@ function buildHref(pageNum: number, base: Record<string, string | undefined>) {
   if (pageNum <= 1) p.delete("page");
   else p.set("page", String(pageNum));
   const qs = p.toString();
-  return qs.length ? `/directory?${qs}` : "/directory";
+  return qs.length ? `${pathname}?${qs}` : pathname;
 }
 
-export function DirectoryPagination({ page, pageCount, baseQuery }: Props) {
+export function DirectoryPagination({
+  page,
+  pageCount,
+  baseQuery,
+  pathname = "/directory",
+}: Props) {
   if (pageCount <= 1) return null;
   const prev = Math.max(1, page - 1);
   const next = Math.min(pageCount, page + 1);
@@ -36,8 +46,8 @@ export function DirectoryPagination({ page, pageCount, baseQuery }: Props) {
   const btn =
     "inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-[color-mix(in_oklch,var(--accent)_22%,transparent)] bg-[var(--surface-card)] px-5 text-sm font-semibold text-[var(--ink)] transition-[transform,background-color,color] duration-200 ease-[var(--ease-out-expo)] hover:border-[color-mix(in_oklch,var(--accent)_35%,transparent)] hover:text-[var(--accent-strong)] active:scale-[0.985] disabled:opacity-40 sm:flex-none";
 
-  const prevHref = page > 1 ? buildHref(prev, baseQuery) : null;
-  const nextHref = page < pageCount ? buildHref(next, baseQuery) : null;
+  const prevHref = page > 1 ? buildHref(prev, baseQuery, pathname) : null;
+  const nextHref = page < pageCount ? buildHref(next, baseQuery, pathname) : null;
 
   return (
     <div className="flex flex-col gap-6 border-t border-[var(--line)] pt-10 sm:flex-row sm:items-center sm:justify-between">

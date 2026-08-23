@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils/cn";
 
@@ -84,6 +84,7 @@ export function SearchableSelect({
   defaultValue = "",
   onChange,
 }: SearchableSelectProps) {
+  const listboxId = useId();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(defaultValue);
@@ -129,6 +130,7 @@ export function SearchableSelect({
         tabIndex={0}
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-controls={listboxId}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen((o) => !o); }
@@ -190,9 +192,9 @@ export function SearchableSelect({
             )}
           </div>
 
-          <ul role="listbox" className="select-options">
+          <ul id={listboxId} role="listbox" className="select-options">
             {allFiltered.length === 0 ? (
-              <li className="select-empty">No options match "{search}"</li>
+              <li className="select-empty">No options match &ldquo;{search}&rdquo;</li>
             ) : (
               <>
                 {filtered.map((opt) => (
@@ -241,6 +243,7 @@ export function MultiSelect({
   hasError = false,
   defaultValue = [],
 }: MultiSelectProps) {
+  const listboxId = useId();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>(defaultValue);
@@ -288,11 +291,20 @@ export function MultiSelect({
       ))}
 
       {/* Trigger */}
-      <button
-        type="button"
+      <div
+        role="combobox"
+        tabIndex={0}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-controls={listboxId}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setOpen((value) => !value);
+          }
+          if (event.key === "Escape") setOpen(false);
+        }}
         className={cn(
           "field-input flex min-h-11.5 w-full items-center justify-between gap-2 text-left",
           hasError && "field-input-error",
@@ -323,7 +335,7 @@ export function MultiSelect({
           )}
         </div>
         <ChevronIcon open={open} />
-      </button>
+      </div>
 
       {/* Panel */}
       {open && (
@@ -352,9 +364,9 @@ export function MultiSelect({
             )}
           </div>
 
-          <ul role="listbox" aria-multiselectable="true" className="select-options">
+          <ul id={listboxId} role="listbox" aria-multiselectable="true" className="select-options">
             {filtered.length === 0 ? (
-              <li className="select-empty">No options match "{search}"</li>
+              <li className="select-empty">No options match &ldquo;{search}&rdquo;</li>
             ) : (
               filtered.map((opt) => {
                 const checked = selected.includes(opt);

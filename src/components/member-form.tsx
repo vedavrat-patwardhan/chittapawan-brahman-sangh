@@ -215,8 +215,9 @@ export function MemberIntakeForm() {
   function clearError(name: string) {
     setFieldErrors((prev) => {
       if (!prev[name]) return prev;
-      const { [name]: _, ...rest } = prev;
-      return rest;
+      const next = { ...prev };
+      delete next[name];
+      return next;
     });
   }
 
@@ -315,8 +316,11 @@ export function MemberIntakeForm() {
           Member directory · {STEPS.length}-step intake
         </p>
         <h1 className="font-display text-[clamp(2rem,5vw,2.75rem)] font-bold leading-tight tracking-tight text-(--ink)">
-          Join the Sangh directory.
+          Apply to join the directory.
         </h1>
+        <p className="mt-3 max-w-xl text-sm leading-relaxed text-(--ink-soft)">
+          Your application stays private while a Sangh administrator verifies it. Approved profiles are then published in the community business directory.
+        </p>
       </div>
 
       {/* Stepper */}
@@ -341,6 +345,16 @@ export function MemberIntakeForm() {
         noValidate
         className="rounded-(--radius-card) border border-(--line) bg-(--surface-card) p-6 shadow-[0_24px_64px_-48px_color-mix(in_oklch,var(--accent)_24%,rgba(0,0,0,0.16))] sm:p-8"
       >
+        <div className="hidden" aria-hidden="true">
+          <label htmlFor="company_website_confirmation">Leave this field empty</label>
+          <input
+            id="company_website_confirmation"
+            name="company_website_confirmation"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
         {/* ── Step 0 : Identity ──────────────────────────────────────── */}
         <StepShell
           stepNum={0}
@@ -746,7 +760,7 @@ export function MemberIntakeForm() {
             <div className="flex flex-col gap-4">
               <WizardField
                 label="Portfolio / product photos"
-                hint="Multiple files, max 5 MB each"
+                hint="Up to 4 images · 10 MB combined with all uploads"
               >
                 <input
                   name="portfolio"
@@ -786,9 +800,9 @@ export function MemberIntakeForm() {
               />
               <span className="text-sm leading-relaxed text-(--ink-soft)">
                 <strong className="font-semibold text-(--ink)">I agree</strong>{" "}
-                to share my details with verified Chittapawan Brahman Sangh
-                members for networking and business discovery. This listing will
-                be visible to all registered members.
+                to submit my details to Chittapawan Brahman Sangh for verification.
+                If approved, this listing and its contact information may be visible
+                to directory visitors for networking and business discovery.
               </span>
             </label>
             {fieldErrors.consent_share && (
@@ -836,7 +850,7 @@ export function MemberIntakeForm() {
               }}
               className="inline-flex min-h-11 items-center rounded-full bg-(--accent) px-8 text-sm font-semibold text-white shadow-[0_12px_32px_-18px_var(--accent-strong)] transition-[transform,background-color,opacity] duration-200 hover:bg-(--accent-strong) active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:ring-focus"
             >
-              {isPending ? "Saving…" : "Submit listing"}
+              {isPending ? "Submitting…" : "Submit for review"}
             </button>
           ) : (
             <button

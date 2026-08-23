@@ -1,3 +1,6 @@
+export const LISTING_STATUSES = ["pending", "approved", "rejected"] as const;
+export type ListingStatus = (typeof LISTING_STATUSES)[number];
+
 export type MemberListItem = {
   id: string;
   created_at: string;
@@ -11,6 +14,63 @@ export type MemberListItem = {
   email: string;
   contact_number: string;
   products_services: string;
+};
+
+export type AdminApplicationListItem = MemberListItem & {
+  status: ListingStatus;
+  updated_at: string;
+  reviewed_at: string | null;
+};
+
+export type MemberReviewer = {
+  admin_id: string;
+  email: string;
+  name: string;
+};
+
+/** Stored in MongoDB `directory_members`. `_id` is added by the driver. */
+export type DirectoryMemberDocument = {
+  created_at: Date;
+  updated_at?: Date;
+  status?: ListingStatus;
+  reviewed_at?: Date | null;
+  reviewed_by?: MemberReviewer | null;
+  admin_note?: string | null;
+  rejection_reason?: string | null;
+  schema_version?: number;
+  full_name: string;
+  business_name: string;
+  profile_photo_path: string | null;
+  contact_number: string;
+  whatsapp_number: string | null;
+  email: string;
+  city: string;
+  area_locality: string | null;
+  business_category: string;
+  sub_category: string;
+  business_types: string[];
+  keywords_tags: string;
+  products_services: string;
+  specialization: string | null;
+  years_experience: string | null;
+  price_ranges: string[];
+  business_address: string | null;
+  service_area: string[];
+  google_maps_link: string | null;
+  website: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  linkedin: string | null;
+  usp: string | null;
+  certifications: string | null;
+  awards: string | null;
+  looking_for: string[];
+  preferred_categories_connect: string[];
+  portfolio_paths: string[];
+  visiting_card_path: string | null;
+  target_customers: string | null;
+  referred_by: string | null;
+  consent_share: true;
 };
 
 export function mapMemberRow(row: Record<string, unknown>): MemberListItem {
@@ -28,4 +88,8 @@ export function mapMemberRow(row: Record<string, unknown>): MemberListItem {
     contact_number: String(row.contact_number),
     products_services: String(row.products_services),
   };
+}
+
+export function effectiveListingStatus(value: unknown): ListingStatus {
+  return value === "pending" || value === "rejected" ? value : "approved";
 }

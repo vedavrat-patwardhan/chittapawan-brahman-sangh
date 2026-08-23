@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils/cn";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Member Directory",
+  title: "Business Directory",
   description:
     "Search and filter Chittapawan Brahman Sangh members by sector, business type, and city.",
 };
@@ -76,8 +76,11 @@ export default async function DirectoryPage(props: PageProps) {
       page: Number.isFinite(page) && page > 0 ? page : 1,
     });
   } catch (e: unknown) {
-    dbError =
-      e instanceof Error ? e.message : "Unexpected error reaching Supabase.";
+    console.error(
+      "[DirectoryPage] MongoDB query failed:",
+      e instanceof Error ? e.message : "Unknown error",
+    );
+    dbError = "We could not reach the directory database.";
   }
 
   const demoSubmitted = qp(raw.demo_submitted) === "1";
@@ -103,14 +106,14 @@ export default async function DirectoryPage(props: PageProps) {
         <NoticeBanner
           tone="error"
           title="Directory data unavailable"
-          message={`${dbError} You can still use Add listing to walk through the intake form while the database is offline.`}
+          message={`${dbError} Please try again shortly; no unapproved data has been exposed.`}
         />
       )}
 
       {/* Header row */}
       <div className="motion-rise flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold tracking-tight text-[var(--ink)] sm:text-4xl">
-          Member directory
+          Community business directory
         </h1>
         <Link
           className="inline-flex min-h-10 w-max items-center rounded-full bg-[var(--accent)] px-6 text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))] shadow-[0_16px_36px_-24px_var(--accent-strong)] transition-[transform,background-color] duration-200 hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] focus-visible:ring-focus"
@@ -213,7 +216,7 @@ export default async function DirectoryPage(props: PageProps) {
             <span className="font-semibold tabular-nums text-[var(--ink)]">
               {data.total}
             </span>{" "}
-            {data.total === 1 ? "member" : "members"}
+            {data.total === 1 ? "business" : "businesses"}
             {hasFilters ? " matching filters" : ""}
           </p>
           <p className="hidden text-xs text-[var(--muted)] sm:block">
@@ -221,7 +224,35 @@ export default async function DirectoryPage(props: PageProps) {
           </p>
         </div>
 
-        <div className="-mx-[var(--hero-pad-inline)] overflow-x-auto px-[var(--hero-pad-inline)] sm:mx-0 sm:px-0">
+        <div className="grid gap-3 sm:hidden">
+          {data.rows.length === 0 ? (
+            <div className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface-card)] px-5 py-10 text-center text-sm text-[var(--muted)]">
+              No approved businesses match those filters yet.{" "}
+              <Link href="/join" className="font-bold text-[var(--accent-strong)] hover:underline">Apply for a listing →</Link>
+            </div>
+          ) : (
+            data.rows.map((row) => (
+              <article key={row.id} className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface-card)] p-5 shadow-[0_18px_45px_-38px_var(--ink)]">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-[0.64rem] font-bold tracking-[0.11em] text-[var(--accent-strong)] uppercase">{row.business_category}</p>
+                    <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold leading-tight text-[var(--ink)]">{row.business_name}</h2>
+                    <p className="mt-1 text-sm text-[var(--ink-soft)]">{row.full_name} · {row.city}</p>
+                  </div>
+                  <Link href={`/directory/${row.id}`} aria-label={`View ${row.business_name}`} className="shrink-0 rounded-full border border-[var(--line-strong)] px-3 py-1.5 text-xs font-bold text-[var(--accent-strong)]">View →</Link>
+                </div>
+                <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-[var(--muted)]">{row.products_services}</p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {row.business_types.slice(0, 2).map((type) => (
+                    <span key={type} className="rounded-full bg-[var(--surface-inset)] px-2.5 py-1 text-[0.65rem] font-semibold text-[var(--ink-soft)]">{type}</span>
+                  ))}
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+
+        <div className="-mx-[var(--hero-pad-inline)] hidden overflow-x-auto px-[var(--hero-pad-inline)] sm:mx-0 sm:block sm:px-0">
           <table className="w-full min-w-[820px] border-separate border-spacing-0 text-left text-sm">
             <thead>
               <tr>
@@ -254,7 +285,7 @@ export default async function DirectoryPage(props: PageProps) {
                     colSpan={7}
                     className="px-4 py-14 text-center text-[var(--muted)]"
                   >
-                    No members match those filters yet.{" "}
+                    No approved businesses match those filters yet.{" "}
                     <Link
                       href="/join"
                       className="font-semibold text-[var(--accent-strong)] hover:underline underline-offset-4"

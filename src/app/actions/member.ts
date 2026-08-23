@@ -2,9 +2,10 @@
 
 import { redirect } from "next/navigation";
 
+import { insertMember } from "@/lib/directory-queries";
 import { BYPASS_FORM_VALIDATION } from "@/lib/feature-flags";
-import { uploadMemberFile } from "@/lib/public-url";
-import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { consumeRateLimit, requestFingerprint } from "@/lib/rate-limit";
+import { deleteMemberUploads, uploadMemberFile } from "@/lib/uploads";
 import {
   directoryMemberInsertSchema,
   type DirectoryMemberInsertInput,
@@ -31,36 +32,15 @@ export async function submitDirectoryMember(
   _prev: SubmitMemberState,
   fd: FormData,
 ): Promise<SubmitMemberState> {
+  if (fd.get("company_website_confirmation")?.toString().trim()) {
+    redirect("/join/success?reference=received");
+  }
+
   if (!BYPASS_FORM_VALIDATION && fd.get("consent_share") !== "on") {
     return {
       message:
         "Please confirm consent to share your listing with verified group members.",
     };
-  }
-
-  let profile_photo_path: string | undefined;
-  const profilePhoto = fd.get("profile_photo");
-  if (profilePhoto instanceof File && profilePhoto.size > 0) {
-    const up = await uploadMemberFile(profilePhoto, "profiles");
-    if (up.error) return { message: up.error };
-    profile_photo_path = up.path;
-  }
-
-  const portfolio_paths: string[] = [];
-  const portfolioFiles = fd.getAll("portfolio");
-  for (const f of portfolioFiles) {
-    if (!(f instanceof File) || f.size === 0) continue;
-    const up = await uploadMemberFile(f, "portfolio");
-    if (up.error) return { message: up.error };
-    portfolio_paths.push(up.path);
-  }
-
-  let visiting_card_path: string | undefined;
-  const visitingCard = fd.get("visiting_card");
-  if (visitingCard instanceof File && visitingCard.size > 0) {
-    const up = await uploadMemberFile(visitingCard, "cards");
-    if (up.error) return { message: up.error };
-    visiting_card_path = up.path;
   }
 
   const raw = {
@@ -101,9 +81,6 @@ export async function submitDirectoryMember(
     referred_by: fd.get("referred_by")?.toString(),
 
     consent_share: true as const,
-    profile_photo_path,
-    portfolio_paths: portfolio_paths.length ? portfolio_paths : undefined,
-    visiting_card_path,
   };
 
   if (BYPASS_FORM_VALIDATION) {
@@ -124,61 +101,94 @@ export async function submitDirectoryMember(
 
   const payload: DirectoryMemberInsertInput = parsed.data;
 
-  const supabase = createSupabaseAdmin();
-  const { data, error } = await supabase
-    .from("directory_members")
-    .insert({
-      full_name: payload.full_name,
-      business_name: payload.business_name,
-      profile_photo_path: payload.profile_photo_path ?? null,
-      contact_number: payload.contact_number,
-      whatsapp_number: payload.whatsapp_number ?? null,
-      email: payload.email,
-      city: payload.city,
-      area_locality: payload.area_locality ?? null,
+  const profilePhoto = fd.get("profile_photo");
+  const portfolioFiles = fd
+    .getAll("portfolio")
+    .filter((file): file is File => file instanceof File && file.size > 0);
+  const visitingCard = fd.get("visiting_card");
+  const files = [
+    ...(profilePhoto instanceof File && profilePhoto.size > 0
+      ? [profilePhoto]
+      : []),
+    ...portfolioFiles,
+    ...(visitingCard instanceof File && visitingCard.size > 0
+      ? [visitingCard]
+      : []),
+  ];
+  if (portfolioFiles.length > 4) {
+    return { message: "Upload no more than 4 portfolio images." };
+  }
+  if (files.reduce((sum, file) => sum + file.size, 0) > 10 * 1024 * 1024) {
+    return { message: "Keep the combined upload size under 10 MB." };
+  }
 
-      business_category: payload.business_category,
-      sub_category: payload.sub_category,
-      business_types: payload.business_types,
-      keywords_tags: payload.keywords_tags,
-      products_services: payload.products_services,
-      specialization: payload.specialization ?? null,
-      years_experience: payload.years_experience ?? null,
-      price_ranges: payload.price_ranges ?? [],
+  try {
+    const fingerprint = await requestFingerprint("public-submission");
+    const rateLimit = await consumeRateLimit({
+      key: `public-submission:${fingerprint}`,
+      limit: 4,
+      windowMs: 60 * 60 * 1000,
+    });
+    if (!rateLimit.allowed) {
+      return {
+        message: `Submission limit reached. Please try again in ${Math.ceil(rateLimit.retryAfterSeconds / 60)} minute(s).`,
+      };
+    }
+  } catch (error) {
+    console.error("[submitDirectoryMember] Rate limit unavailable", error);
+  }
 
-      business_address: payload.business_address ?? null,
-      service_area: payload.service_area,
-      google_maps_link: payload.google_maps_link ?? null,
+  const createdUploadIds: string[] = [];
+  let profile_photo_path: string | undefined;
+  const portfolio_paths: string[] = [];
+  let visiting_card_path: string | undefined;
 
-      website: payload.website ?? null,
-      instagram: payload.instagram ?? null,
-      facebook: payload.facebook ?? null,
-      linkedin: payload.linkedin ?? null,
+  const saveUpload = async (
+    file: File,
+    folder: "profiles" | "portfolio" | "cards",
+  ): Promise<{ path?: string; error?: string }> => {
+    const result = await uploadMemberFile(file, folder);
+    if (result.path) createdUploadIds.push(result.path);
+    return result.error ? { error: result.error } : { path: result.path };
+  };
 
-      usp: payload.usp ?? null,
-      certifications: payload.certifications ?? null,
-      awards: payload.awards ?? null,
+  if (profilePhoto instanceof File && profilePhoto.size > 0) {
+    const upload = await saveUpload(profilePhoto, "profiles");
+    if (upload.error) return { message: upload.error };
+    profile_photo_path = upload.path;
+  }
+  for (const file of portfolioFiles) {
+    const upload = await saveUpload(file, "portfolio");
+    if (upload.error) {
+      await deleteMemberUploads(createdUploadIds).catch(() => undefined);
+      return { message: upload.error };
+    }
+    if (upload.path) portfolio_paths.push(upload.path);
+  }
+  if (visitingCard instanceof File && visitingCard.size > 0) {
+    const upload = await saveUpload(visitingCard, "cards");
+    if (upload.error) {
+      await deleteMemberUploads(createdUploadIds).catch(() => undefined);
+      return { message: upload.error };
+    }
+    visiting_card_path = upload.path;
+  }
 
-      looking_for: payload.looking_for,
-      preferred_categories_connect: payload.preferred_categories_connect,
-
-      portfolio_paths: payload.portfolio_paths ?? [],
-      visiting_card_path: payload.visiting_card_path ?? null,
-
-      target_customers: payload.target_customers ?? null,
-      referred_by: payload.referred_by ?? null,
-
-      consent_share: payload.consent_share,
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    console.error("[submitDirectoryMember]", error);
+  let id: string;
+  try {
+    id = await insertMember({
+      ...payload,
+      profile_photo_path,
+      portfolio_paths: portfolio_paths.length ? portfolio_paths : undefined,
+      visiting_card_path,
+    });
+  } catch (e: unknown) {
+    await deleteMemberUploads(createdUploadIds).catch(() => undefined);
+    console.error("[submitDirectoryMember]", e);
     return {
-      message: error.message || "Could not save to the directory right now.",
+      message: "Could not save your application right now. Please try again shortly.",
     };
   }
 
-  redirect(`/directory/${data.id}`);
+  redirect(`/join/success?reference=${id}`);
 }

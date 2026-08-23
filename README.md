@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chittapawan Brahman Sangh Business Directory
 
-## Getting Started
+A community business directory built with Next.js 16 and MongoDB. Business owners submit a public application; administrators privately review it; only approved listings appear in the searchable directory.
 
-First, run the development server:
+## Workflows
+
+- `/join` — public six-step business application
+- `/join/success` — acknowledgement and reference number
+- `/directory` — public search of approved listings only
+- `/admin` — protected review queue with pending, approved, and rejected states
+- `/admin/applications/[id]` — full application, private notes, approve/reject controls
+
+Legacy MongoDB records without a `status` are treated as approved so the Supabase migration does not make existing listings disappear. Run the idempotent migration below to backfill them explicitly.
+
+## Local setup
+
+1. Copy `.env.example` to `.env.local` and set `MONGODB_URI`, `MONGODB_DB`, and a long random `AUTH_SESSION_SECRET`.
+2. Install and normalize the database:
+
+   ```bash
+   npm install
+   npm run mongodb:migrate
+   npm run mongodb:audit
+   ```
+
+3. Create each administrator. Keep the password out of shell history:
+
+   ```bash
+   ADMIN_PASSWORD='use-a-long-unique-password' npm run admin:create -- --email admin@example.org --name "Admin Name"
+   ```
+
+4. Start the app:
+
+   ```bash
+   npm run dev
+   ```
+
+## MongoDB collections
+
+- `directory_members` — applications and approved listings
+- `member_uploads` — images/PDFs stored as separate BSON documents (images are resized and converted to WebP)
+- `directory_admins` — scrypt password hashes and active status
+- `rate_limits` — short-lived login/submission throttles (TTL indexed)
+
+New applications use `schema_version: 2` and begin with `status: "pending"`. Review metadata records the timestamp and administrator identity. Pending/rejected uploads are available only to signed-in admins; uploads linked to approved listings can be served publicly.
+
+## Free deployment
+
+The application has no paid package dependency. It can run on a free Node-compatible host with MongoDB Atlas's free cluster tier. File uploads currently live in MongoDB to avoid requiring another service; for a larger directory, move media to a free object-storage allowance and keep only file keys in MongoDB.
+
+## Checks
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run lint
+npm run build
+npm run mongodb:audit
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

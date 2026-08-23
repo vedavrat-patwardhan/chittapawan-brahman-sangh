@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 const stats = [
-  { value: "175+", label: "Active businesses" },
+  { value: "1", label: "Trusted directory" },
   { value: "1933", label: "Year founded" },
-  { value: "10+", label: "Activity sectors" },
+  { value: "16", label: "Business categories" },
 ];
 
 export default function HomePage() {
@@ -26,16 +26,16 @@ export default function HomePage() {
           </p>
           <div className="motion-rise-delay-3 mt-8 flex flex-wrap gap-3">
             <Link
-              href="/login"
+              href="/directory"
               className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-7 text-sm font-semibold text-[color-mix(in_oklch,white_97%,var(--accent))] shadow-[0_20px_48px_-28px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] focus-visible:ring-focus"
             >
-              Sign in to directory
+              Browse the directory
             </Link>
             <Link
-              href="/login?next=/join"
+              href="/join"
               className="inline-flex min-h-11 items-center rounded-full border border-[var(--line-strong)] bg-[var(--surface-card)] px-7 text-sm font-semibold text-[var(--ink-soft)] transition-[border-color,color,transform] duration-200 hover:border-[var(--accent)] hover:text-[var(--ink)] focus-visible:ring-focus"
             >
-              Add a new member
+              Submit your business
             </Link>
           </div>
         </div>
@@ -70,10 +70,10 @@ export default function HomePage() {
               searchable profile — no WhatsApp forwarding, no outdated PDFs.
             </p>
             <Link
-              href="/login?next=/join"
+              href="/join"
               className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--line-strong)] px-5 text-sm font-semibold text-[var(--ink-soft)] transition-colors hover:border-[var(--accent)] hover:text-[var(--ink)] focus-visible:ring-focus"
             >
-              Sign in to add a member →
+              Apply for a listing →
             </Link>
           </div>
 
@@ -91,8 +91,8 @@ export default function HomePage() {
               },
               {
                 n: "03",
-                title: "Business-type filters",
-                body: "B2B, B2C, export — filters respect how members actually operate, not just what sector they are in.",
+                title: "Admin verified",
+                body: "Every new application stays private until a Sangh administrator checks and approves the details.",
               },
               {
                 n: "04",

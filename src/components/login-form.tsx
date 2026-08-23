@@ -35,7 +35,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
           name="identifier"
           type="text"
           autoComplete="username"
-          placeholder="admin"
+          placeholder="admin@example.org"
           required
           className="field-input"
         />
@@ -62,9 +62,7 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       </button>
 
       <p className="rounded-lg border border-(--line) bg-(--surface-inset) px-4 py-3 text-xs leading-relaxed text-(--muted)">
-        Temporary access for testers: use <strong className="text-(--ink-soft)">admin</strong> /{" "}
-        <strong className="text-(--ink-soft)">admin</strong>. Real accounts will be added when the
-        database is connected.
+        Admin accounts are created by the project maintainer. Contact them if you need access or a password reset.
       </p>
     </form>
   );

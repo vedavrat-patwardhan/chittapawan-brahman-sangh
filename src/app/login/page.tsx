@@ -4,8 +4,8 @@ import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
 
 export const metadata: Metadata = {
-  title: "Sign in",
-  description: "Sign in to access the Chittapawan Brahman Sangh member directory.",
+  title: "Admin sign in",
+  description: "Administrator access for the Chittapawan Brahman Sangh directory.",
 };
 
 type PageProps = {
@@ -23,13 +23,13 @@ export default async function LoginPage(props: PageProps) {
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-(--hero-pad-inline) py-14">
       <div className="mb-8 text-center">
         <p className="mb-2 text-[0.68rem] font-semibold tracking-[0.16em] text-(--accent-strong) uppercase">
-          Member directory
+          Directory administration
         </p>
         <h1 className="font-display text-[clamp(2rem,5vw,2.5rem)] font-bold leading-tight tracking-tight text-(--ink)">
-          Sign in to continue
+          Admin sign in
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-(--ink-soft)">
-          Access the directory and add new member records after signing in.
+          Review, verify, and publish business applications.
         </p>
       </div>
 
