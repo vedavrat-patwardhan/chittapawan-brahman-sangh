@@ -2,7 +2,6 @@ import { isValidPhoneNumber } from "react-phone-number-input";
 import { z } from "zod";
 
 import {
-  BUSINESS_CATEGORIES,
   BUSINESS_TYPES,
   LOOKING_FOR_OPTIONS,
   PRICE_RANGE_OPTIONS,
@@ -57,7 +56,7 @@ export const directoryMemberInsertSchema = z.object({
   city: z.string().trim().min(2).max(120),
   area_locality: optTrim,
 
-  business_category: z.enum(BUSINESS_CATEGORIES),
+  business_category: z.string().trim().min(2).max(80),
   sub_category: z.string().trim().min(2).max(160),
   business_types: z.array(z.enum(BUSINESS_TYPES)).min(1).max(7),
   keywords_tags: z.string().trim().min(4).max(500),
@@ -83,7 +82,7 @@ export const directoryMemberInsertSchema = z.object({
   awards: optTrim,
 
   looking_for: z.array(z.enum(LOOKING_FOR_OPTIONS)).max(4),
-  preferred_categories_connect: z.array(z.enum(BUSINESS_CATEGORIES)).max(16),
+  preferred_categories_connect: z.array(z.string().trim().min(2).max(80)).max(50),
 
   target_customers: optTrim,
   referred_by: optTrim,
@@ -136,7 +135,7 @@ export const directoryCorrectionSchema = z.object({
   email: z.string().trim().email().max(254),
   city: z.string().trim().min(2).max(120),
   area_locality: correctionOptionalText,
-  business_category: z.enum(BUSINESS_CATEGORIES),
+  business_category: z.string().trim().min(2).max(80),
   sub_category: z.string().trim().min(2).max(160),
   products_services: z.string().trim().min(10).max(5_000),
   business_address: correctionOptionalText,

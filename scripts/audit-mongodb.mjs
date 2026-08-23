@@ -12,6 +12,7 @@ try {
   const uploads = db.collection("member_uploads");
   const editTokens = db.collection("directory_edit_tokens");
   const changeRequests = db.collection("directory_change_requests");
+  const settings = db.collection("directory_settings");
   const required = ["created_at", "full_name", "business_name", "contact_number", "email", "city", "business_category", "products_services"];
   const missingRequiredFilter = {
     $or: required.flatMap((field) => [
@@ -20,7 +21,7 @@ try {
       { [field]: "" },
     ]),
   };
-  const [total, pending, approved, rejected, legacy, invalidStatus, missingRequired, missingNormalizedIdentity, possibleDuplicates, verificationDue, uploadCount, pendingCorrections, activeCorrectionLinks, indexes] = await Promise.all([
+  const [total, pending, approved, rejected, legacy, invalidStatus, missingRequired, missingNormalizedIdentity, possibleDuplicates, verificationDue, uploadCount, pendingCorrections, activeCorrectionLinks, categorySettings, indexes] = await Promise.all([
     members.countDocuments(),
     members.countDocuments({ status: "pending" }),
     members.countDocuments({ status: "approved" }),
@@ -40,6 +41,7 @@ try {
     uploads.countDocuments(),
     changeRequests.countDocuments({ status: "pending" }),
     editTokens.countDocuments({ used_at: null, revoked_at: null, expires_at: { $gt: new Date() } }),
+    settings.findOne({ key: "business_categories" }),
     members.indexes(),
   ]);
 
@@ -49,6 +51,7 @@ try {
     integrity: { invalidStatus, missingRequiredFields: missingRequired, missingNormalizedIdentity },
     reviewSignals: { possibleDuplicates, verificationDue },
     corrections: { pending: pendingCorrections, activeLinks: activeCorrectionLinks },
+    settings: { configuredBusinessCategories: Array.isArray(categorySettings?.values) ? categorySettings.values.length : 0, usingBuiltInDefaults: !categorySettings },
     uploads: uploadCount,
     indexes: indexes.map((index) => index.name),
   }, null, 2));

@@ -6,6 +6,7 @@ import {
   BUSINESS_CATEGORIES,
   BUSINESS_TYPES,
 } from "@/lib/constants/form-options";
+import { getBusinessCategories } from "@/lib/categories";
 import { listMembers } from "@/lib/directory-queries";
 import { qp, type RawSearchParams } from "@/lib/search-params";
 import { cn } from "@/lib/utils/cn";
@@ -66,15 +67,19 @@ export default async function DirectoryPage(props: PageProps) {
     pageCount: 1,
   };
   let dbError: string | null = null;
+  let businessCategories: string[] = [...BUSINESS_CATEGORIES];
 
   try {
-    data = await listMembers({
-      search,
-      category,
-      city,
-      business_type,
-      page: Number.isFinite(page) && page > 0 ? page : 1,
-    });
+    [data, businessCategories] = await Promise.all([
+      listMembers({
+        search,
+        category,
+        city,
+        business_type,
+        page: Number.isFinite(page) && page > 0 ? page : 1,
+      }),
+      getBusinessCategories(),
+    ]);
   } catch (e: unknown) {
     console.error(
       "[DirectoryPage] MongoDB query failed:",
@@ -151,7 +156,7 @@ export default async function DirectoryPage(props: PageProps) {
               className={fi}
             >
               <option value="">All sectors</option>
-              {BUSINESS_CATEGORIES.map((c) => (
+              {businessCategories.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>

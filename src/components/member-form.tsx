@@ -6,7 +6,6 @@ import type { Value as PhoneValue } from "react-phone-number-input";
 
 import { submitDirectoryMember } from "@/app/actions/member";
 import {
-  BUSINESS_CATEGORIES,
   BUSINESS_TYPES,
   INDIA_CITIES,
   LOOKING_FOR_OPTIONS,
@@ -187,7 +186,11 @@ function StepShell({
 }
 
 /* ── Main form ──────────────────────────────────────────────────────────── */
-export function MemberIntakeForm() {
+export function MemberIntakeForm({
+  businessCategories,
+}: {
+  businessCategories: readonly string[];
+}) {
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState<"forward" | "back">("forward");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -543,7 +546,7 @@ export function MemberIntakeForm() {
             >
               <SearchableSelect
                 name="business_category"
-                options={BUSINESS_CATEGORIES}
+                options={businessCategories}
                 placeholder="Select sector…"
                 hasError={!!fieldErrors.business_category}
                 onChange={() => clearError("business_category")}
@@ -730,7 +733,7 @@ export function MemberIntakeForm() {
           <WizardField label="Sectors you want to connect with">
             <MultiSelect
               name="preferred_categories_connect"
-              options={BUSINESS_CATEGORIES}
+              options={businessCategories}
               placeholder="Search and select sectors…"
             />
           </WizardField>

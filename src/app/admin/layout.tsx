@@ -32,6 +32,12 @@ export default async function AdminLayout({
             >
               Public directory ↗
             </Link>
+            <Link
+              href="/admin/settings/categories"
+              className="rounded-full px-4 py-2 text-sm font-semibold text-[var(--ink-soft)] transition-colors hover:text-[var(--ink)]"
+            >
+              Categories
+            </Link>
           </nav>
           <p className="text-xs text-[var(--muted)]">
             Signed in as <span className="font-semibold text-[var(--ink-soft)]">{session.name}</span>

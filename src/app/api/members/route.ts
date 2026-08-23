@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { listMembers } from "@/lib/directory-queries";
-import type { BUSINESS_CATEGORIES, BUSINESS_TYPES } from "@/lib/constants/form-options";
 
 export async function GET(req: NextRequest) {
   const sp = req.nextUrl.searchParams;
@@ -9,9 +8,9 @@ export async function GET(req: NextRequest) {
   try {
     const result = await listMembers({
       search: sp.get("search") ?? undefined,
-      category: (sp.get("category") as (typeof BUSINESS_CATEGORIES)[number] | "") || "",
+      category: sp.get("category") ?? "",
       city: sp.get("city") ?? undefined,
-      business_type: (sp.get("business_type") as (typeof BUSINESS_TYPES)[number] | "") || "",
+      business_type: sp.get("business_type") ?? "",
       page: Number.isFinite(page) ? page : 1,
     });
     return NextResponse.json(result);

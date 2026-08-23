@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { insertMember } from "@/lib/directory-queries";
+import { canonicalCategory, getBusinessCategories } from "@/lib/categories";
 import { BYPASS_FORM_VALIDATION } from "@/lib/feature-flags";
 import { consumeRateLimit, requestFingerprint } from "@/lib/rate-limit";
 import { deleteMemberUploads, uploadMemberFile } from "@/lib/uploads";
@@ -99,7 +100,26 @@ export async function submitDirectoryMember(
     return { message: msg || "Something in the form needs attention." };
   }
 
-  const payload: DirectoryMemberInsertInput = parsed.data;
+  const allowedCategories = await getBusinessCategories();
+  const businessCategory = canonicalCategory(
+    parsed.data.business_category,
+    allowedCategories,
+  );
+  const preferredCategories = parsed.data.preferred_categories_connect.map(
+    (category) => canonicalCategory(category, allowedCategories),
+  );
+  if (!businessCategory || preferredCategories.some((category) => !category)) {
+    return {
+      message: "Choose business categories from the current directory options.",
+    };
+  }
+  const payload: DirectoryMemberInsertInput = {
+    ...parsed.data,
+    business_category: businessCategory,
+    preferred_categories_connect: preferredCategories.filter(
+      (category): category is string => Boolean(category),
+    ),
+  };
 
   const profilePhoto = fd.get("profile_photo");
   const portfolioFiles = fd

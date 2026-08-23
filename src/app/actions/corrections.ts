@@ -4,8 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdmin } from "@/lib/auth/session";
+import { canonicalCategory, getBusinessCategories } from "@/lib/categories";
 import {
   createChangeRequest,
+  getCorrectionContext,
   issueCorrectionToken,
   reviewChangeRequest,
 } from "@/lib/corrections";
@@ -90,10 +92,29 @@ export async function submitOwnerCorrection(
         .join(" · "),
     };
   }
+  const [allowedCategories, correctionContext] = await Promise.all([
+    getBusinessCategories(),
+    getCorrectionContext(token),
+  ]);
+  const currentCategory = correctionContext?.listing.business_category;
+  const businessCategory =
+    canonicalCategory(parsed.data.business_category, allowedCategories) ??
+    (parsed.data.business_category === currentCategory
+      ? parsed.data.business_category
+      : undefined);
+  if (!businessCategory) {
+    return {
+      success: false,
+      message: "Choose a business category from the current directory options.",
+    };
+  }
 
   let requestId: string | null;
   try {
-    requestId = await createChangeRequest(token, parsed.data);
+    requestId = await createChangeRequest(token, {
+      ...parsed.data,
+      business_category: businessCategory,
+    });
   } catch (error) {
     console.error("[submitOwnerCorrection]", error);
     return { success: false, message: "Could not submit these changes right now." };

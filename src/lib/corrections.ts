@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 
 import type { Filter, ObjectId } from "mongodb";
 
+import { getBusinessCategories } from "@/lib/categories";
 import {
   findPotentialDuplicates,
   refreshDuplicateRisk,
@@ -78,6 +79,7 @@ function storedValue(value: string | string[]): DirectoryChangeValue {
 export type CorrectionContext = {
   memberId: string;
   expiresAt: string;
+  businessCategories: string[];
   listing: Record<CorrectionField, string | string[]>;
 };
 
@@ -160,6 +162,12 @@ export async function getCorrectionContext(
   return {
     memberId: member._id.toString(),
     expiresAt: tokenDocument.expires_at.toISOString(),
+    businessCategories: Array.from(
+      new Set([
+        ...(await getBusinessCategories()),
+        member.business_category,
+      ]),
+    ),
     listing,
   };
 }

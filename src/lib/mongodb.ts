@@ -61,6 +61,14 @@ export type DirectoryChangeRequestDocument = {
   admin_note: string | null;
 };
 
+export type DirectorySettingsDocument = {
+  key: "business_categories";
+  values: string[];
+  created_at: Date;
+  updated_at: Date;
+  updated_by: MemberReviewer;
+};
+
 const globalForMongo = globalThis as typeof globalThis & {
   _mongoClientPromise?: Promise<MongoClient>;
   _mongoIndexes?: Promise<void>;
@@ -119,6 +127,7 @@ async function ensureIndexes(db: Db): Promise<void> {
   const changeRequests = db.collection<DirectoryChangeRequestDocument>(
     "directory_change_requests",
   );
+  const settings = db.collection<DirectorySettingsDocument>("directory_settings");
   await Promise.all([
     members.createIndex({ created_at: -1 }),
     members.createIndex({ status: 1, created_at: -1 }),
@@ -139,6 +148,7 @@ async function ensureIndexes(db: Db): Promise<void> {
     changeRequests.createIndex({ token_id: 1 }, { unique: true }),
     changeRequests.createIndex({ status: 1, submitted_at: -1 }),
     changeRequests.createIndex({ member_id: 1, submitted_at: -1 }),
+    settings.createIndex({ key: 1 }, { unique: true }),
   ]);
 }
 
@@ -179,5 +189,13 @@ export async function changeRequestsCollection(): Promise<
 > {
   return (await getDb()).collection<DirectoryChangeRequestDocument>(
     "directory_change_requests",
+  );
+}
+
+export async function settingsCollection(): Promise<
+  Collection<DirectorySettingsDocument>
+> {
+  return (await getDb()).collection<DirectorySettingsDocument>(
+    "directory_settings",
   );
 }

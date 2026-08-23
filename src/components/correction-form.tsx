@@ -7,7 +7,6 @@ import {
   type SubmitCorrectionState,
 } from "@/app/actions/corrections";
 import {
-  BUSINESS_CATEGORIES,
   SERVICE_AREA_OPTIONS,
 } from "@/lib/constants/form-options";
 import type { CorrectionContext } from "@/lib/corrections";
@@ -100,7 +99,7 @@ export function CorrectionForm({
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Category" required>
             <select name="business_category" defaultValue={String(listing.business_category)} required className="field-input">
-              {BUSINESS_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
+              {context.businessCategories.map((category) => <option key={category}>{category}</option>)}
             </select>
           </Field>
           <Field label="Sub-category" required>
