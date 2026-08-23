@@ -9,6 +9,7 @@ import {
 import { getBusinessCategories } from "@/lib/categories";
 import { listMembers } from "@/lib/directory-queries";
 import { qp, type RawSearchParams } from "@/lib/search-params";
+import { SITE_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils/cn";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,21 @@ export const metadata: Metadata = {
   title: "Business Directory",
   description:
     "Search and filter Chittapawan Brahman Sangh members by sector, business type, and city.",
+  alternates: { canonical: "/directory" },
+  openGraph: {
+    type: "website",
+    url: "/directory",
+    siteName: SITE_NAME,
+    title: "Community Business Directory",
+    description:
+      "Search trusted Chittapawan Brahman Sangh businesses by sector, city, and service.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Community Business Directory",
+    description:
+      "Search trusted Chittapawan Brahman Sangh businesses by sector, city, and service.",
+  },
 };
 
 type PageProps = {

@@ -1,42 +1,76 @@
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
-const stats = [
-  { value: "1", label: "Trusted directory" },
-  { value: "1933", label: "Year founded" },
-  { value: "16", label: "Business categories" },
-];
+import { getBusinessCategories } from "@/lib/categories";
+import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
-export default function HomePage() {
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: SITE_NAME,
+    title: "Chittapawan Brahman Sangh · Business Directory",
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Chittapawan Brahman Sangh · Business Directory",
+    description: SITE_DESCRIPTION,
+  },
+};
+
+export default async function HomePage() {
+  const categories = await getBusinessCategories();
+  const stats = [
+    { value: "1", label: "Trusted directory" },
+    { value: "1933", label: "Year founded" },
+    { value: String(categories.length), label: "Business categories" },
+  ];
   return (
     <div className="flex flex-1 flex-col">
       {/* Hero */}
       <section className="mx-auto w-full max-w-6xl px-[var(--hero-pad-inline)] pt-14 pb-12 sm:pt-20">
-        <div className="max-w-3xl">
-          <p className="motion-rise text-[0.7rem] font-semibold tracking-[0.16em] text-[var(--accent-strong)] uppercase">
-            Konkanastha Brahmin Community · Nashik
-          </p>
-          <h1 className="motion-rise-delay-1 mt-4 font-[family-name:var(--font-display)] text-[clamp(2.6rem,7vw,4.2rem)] font-bold leading-[1.07] tracking-tight text-[var(--ink)]">
-            A living record of every Sangh trade and profession.
-          </h1>
-          <p className="motion-rise-delay-2 mt-6 max-w-[60ch] text-base leading-relaxed text-[var(--ink-soft)] sm:text-lg">
-            Since 1933 the Sangh has united Chittapawan families through
-            commerce, education, and mutual support. This directory extends that
-            mission online — search by sector, city, or keyword; reach anyone in
-            the network within seconds.
-          </p>
-          <div className="motion-rise-delay-3 mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/directory"
-              className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-7 text-sm font-semibold text-[color-mix(in_oklch,white_97%,var(--accent))] shadow-[0_20px_48px_-28px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] focus-visible:ring-focus"
-            >
-              Browse the directory
-            </Link>
-            <Link
-              href="/join"
-              className="inline-flex min-h-11 items-center rounded-full border border-[var(--line-strong)] bg-[var(--surface-card)] px-7 text-sm font-semibold text-[var(--ink-soft)] transition-[border-color,color,transform] duration-200 hover:border-[var(--accent)] hover:text-[var(--ink)] focus-visible:ring-focus"
-            >
-              Submit your business
-            </Link>
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-16">
+          <div className="max-w-3xl">
+            <p className="motion-rise text-[0.7rem] font-semibold tracking-[0.16em] text-[var(--accent-strong)] uppercase">
+              Konkanastha Brahmin Community · Nashik
+            </p>
+            <h1 className="motion-rise-delay-1 mt-4 font-[family-name:var(--font-display)] text-[clamp(2.6rem,7vw,4.2rem)] font-bold leading-[1.07] tracking-tight text-[var(--ink)]">
+              A living record of every Sangh trade and profession.
+            </h1>
+            <p className="motion-rise-delay-2 mt-6 max-w-[60ch] text-base leading-relaxed text-[var(--ink-soft)] sm:text-lg">
+              Since 1933 the Sangh has united Chittapawan families through
+              commerce, education, and mutual support. This directory extends that
+              mission online — search by sector, city, or keyword; reach anyone in
+              the network within seconds.
+            </p>
+            <div className="motion-rise-delay-3 mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/directory"
+                className="inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-7 text-sm font-semibold text-[color-mix(in_oklch,white_97%,var(--accent))] shadow-[0_20px_48px_-28px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:-translate-y-0.5 hover:bg-[var(--accent-strong)] focus-visible:ring-focus"
+              >
+                Browse the directory
+              </Link>
+              <Link
+                href="/join"
+                className="inline-flex min-h-11 items-center rounded-full border border-[var(--line-strong)] bg-[var(--surface-card)] px-7 text-sm font-semibold text-[var(--ink-soft)] transition-[border-color,color,transform] duration-200 hover:border-[var(--accent)] hover:text-[var(--ink)] focus-visible:ring-focus"
+              >
+                Submit your business
+              </Link>
+            </div>
+          </div>
+          <div className="motion-rise-delay-2 relative mx-auto hidden aspect-square w-full max-w-[21rem] lg:block">
+            <div aria-hidden className="absolute inset-8 rounded-full bg-[var(--accent-soft)] blur-3xl" />
+            <Image
+              src="/brand/parshuram-mark-512.png"
+              alt="Lord Parshuram emblem of Chittapawan Brahman Sangh"
+              width={512}
+              height={512}
+              priority
+              className="relative h-full w-full object-contain drop-shadow-[0_30px_42px_color-mix(in_oklch,var(--accent)_25%,transparent)]"
+            />
           </div>
         </div>
       </section>

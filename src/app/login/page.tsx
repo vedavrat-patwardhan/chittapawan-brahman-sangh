@@ -6,6 +6,7 @@ import { LoginForm } from "@/components/login-form";
 export const metadata: Metadata = {
   title: "Admin sign in",
   description: "Administrator access for the Chittapawan Brahman Sangh directory.",
+  robots: { index: false, follow: false },
 };
 
 type PageProps = {

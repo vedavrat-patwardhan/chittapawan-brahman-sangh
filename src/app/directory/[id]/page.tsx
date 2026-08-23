@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { getMemberById } from "@/lib/directory-queries";
+import { SITE_NAME } from "@/lib/site";
 import { storagePublicUrl } from "@/lib/uploads";
 
 export const dynamic = "force-dynamic";
@@ -74,9 +75,32 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     const name = asString(row?.full_name);
     const business = asString(row?.business_name);
     if (!row) return { title: "Not found" };
+    const title = business || name || "Directory member";
+    const description = [
+      asString(row.business_category),
+      asString(row.sub_category),
+      asString(row.city),
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    const canonical = `/directory/${id}`;
     return {
-      title: name || business || "Member",
-      description: business ? `${business} · ${asString(row.city)}` : "Directory member record",
+      title,
+      description: description || `${title} in the community business directory.`,
+      alternates: { canonical },
+      openGraph: {
+        type: "website",
+        url: canonical,
+        siteName: SITE_NAME,
+        title,
+        description: description || `${title} in the community business directory.`,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description: description || `${title} in the community business directory.`,
+      },
+      robots: { index: true, follow: true },
     };
   } catch {
     return { title: "Member" };

@@ -11,6 +11,7 @@ A community business directory built with Next.js 16 and MongoDB. Business owner
 - `/admin/applications/[id]` — full application, private notes, approve/reject controls
 - `/admin/export` — authenticated CSV export of the active queue/search
 - `/admin/changes` — protected owner-correction review queue
+- `/admin/profile` — edit the signed-in administrator and rotate its password
 - `/admin/settings/categories` — MongoDB-backed category ordering and maintenance
 - `/update/[token]` — expiring one-time owner correction form
 
@@ -22,7 +23,7 @@ Legacy MongoDB records without a `status` are treated as approved so the Supabas
 
 ## Local setup
 
-1. Copy `.env.example` to `.env.local` and set `MONGODB_URI`, `MONGODB_DB`, and a long random `AUTH_SESSION_SECRET`.
+1. Copy `.env.example` to `.env.local` and set `MONGODB_URI`, `MONGODB_DB`, a long random `AUTH_SESSION_SECRET`, and the public `NEXT_PUBLIC_APP_URL` used for canonical URLs and sitemaps.
 2. Install and normalize the database:
 
    ```bash
@@ -34,7 +35,9 @@ Legacy MongoDB records without a `status` are treated as approved so the Supabas
 3. Create each administrator. Keep the password out of shell history:
 
    ```bash
-   ADMIN_PASSWORD='use-a-long-unique-password' npm run admin:create -- --email admin@example.org --name "Admin Name"
+   read -s "CBS_ADMIN_PASSWORD?Admin password: "
+   ADMIN_PASSWORD="$CBS_ADMIN_PASSWORD" npm run admin:create -- --email admin@example.org --name "Admin Name"
+   unset CBS_ADMIN_PASSWORD
    ```
 
 4. Start the app:
@@ -54,6 +57,12 @@ Legacy MongoDB records without a `status` are treated as approved so the Supabas
 - `directory_settings` — administrator-managed business categories (built-in defaults remain the fallback)
 
 New applications use `schema_version: 3` and begin with `status: "pending"`. Review metadata records the timestamp and administrator identity. Pending/rejected uploads are available only to signed-in admins; uploads linked to approved listings can be served publicly.
+
+Password changes increment the administrator session version, immediately invalidating older browser sessions. Profile and password mutations require the current password and are rate limited.
+
+## Brand and search metadata
+
+The Lord Parshuram master emblem lives at `public/brand/parshuram-mark-master.png`. Run `npm run brand:generate` after replacing the master to regenerate header icons, the favicon, Apple/app icons, and 1200×630 Open Graph and Twitter cards. The app also provides `manifest.webmanifest`, `robots.txt`, a MongoDB-backed `sitemap.xml`, canonical metadata, and Organization/WebSite JSON-LD.
 
 ## Free deployment
 

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { logout } from "@/app/actions/auth";
@@ -15,12 +16,22 @@ export async function SiteHeader() {
       }}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-[var(--hero-pad-inline)] py-4">
-        <Link href="/" className="group min-w-0">
-          <span className="block font-[family-name:var(--font-display)] text-[1.15rem] font-bold leading-tight tracking-tight text-[var(--ink)] transition-colors duration-200 group-hover:text-[var(--accent-strong)] sm:text-xl">
-            Chittapawan Brahman Sangh
-          </span>
-          <span className="block text-[0.68rem] font-medium tracking-[0.12em] text-[var(--muted)] uppercase">
-            Nashik · est. 1933
+        <Link href="/" className="group flex min-w-0 items-center gap-3">
+          <Image
+            src="/brand/parshuram-mark-192.png"
+            alt=""
+            width={48}
+            height={48}
+            priority
+            className="h-11 w-11 shrink-0 object-contain transition-transform duration-300 group-hover:rotate-2 group-hover:scale-[1.03] sm:h-12 sm:w-12"
+          />
+          <span className="min-w-0">
+            <span className="block truncate font-[family-name:var(--font-display)] text-[1.02rem] font-bold leading-tight tracking-tight text-[var(--ink)] transition-colors duration-200 group-hover:text-[var(--accent-strong)] sm:text-xl">
+              Chittapawan Brahman Sangh
+            </span>
+            <span className="block text-[0.64rem] font-medium tracking-[0.12em] text-[var(--muted)] uppercase sm:text-[0.68rem]">
+              Nashik · est. 1933
+            </span>
           </span>
         </Link>
 
@@ -108,13 +119,16 @@ export function SiteFooter() {
     <footer className="border-t border-[var(--line)] bg-[var(--surface-inset)]">
       <div className="mx-auto max-w-6xl px-[var(--hero-pad-inline)] py-12">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-2">
-            <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--ink)]">
-              Chittapawan Brahman Sangh
-            </p>
-            <p className="text-sm text-[var(--muted)]">
-              Nashik · Established 1933
-            </p>
+          <div className="flex items-center gap-3">
+            <Image src="/brand/parshuram-mark-192.png" alt="" width={52} height={52} className="h-13 w-13 object-contain" />
+            <div className="space-y-1">
+              <p className="font-[family-name:var(--font-display)] text-lg font-bold text-[var(--ink)]">
+                Chittapawan Brahman Sangh
+              </p>
+              <p className="text-sm text-[var(--muted)]">
+                Nashik · Established 1933
+              </p>
+            </div>
           </div>
           <div className="flex flex-col gap-1 text-sm text-[var(--ink-soft)]">
             <Link

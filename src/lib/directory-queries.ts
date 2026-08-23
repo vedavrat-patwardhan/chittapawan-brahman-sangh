@@ -491,6 +491,23 @@ export async function exportApplications(
   return docs.map(serializeMember);
 }
 
+export async function listApprovedMembersForSitemap(): Promise<
+  Array<{ id: string; updatedAt: Date }>
+> {
+  const members = await membersCollection();
+  const docs = await members
+    .find(APPROVED_MEMBER_FILTER, {
+      projection: { updated_at: 1, created_at: 1 },
+    })
+    .sort({ updated_at: -1 })
+    .limit(50_000)
+    .toArray();
+  return docs.map((doc) => ({
+    id: doc._id.toString(),
+    updatedAt: doc.updated_at instanceof Date ? doc.updated_at : doc.created_at,
+  }));
+}
+
 export async function reviewApplication(input: {
   id: string;
   status: Exclude<ListingStatus, "pending">;

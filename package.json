@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "brand:generate": "node scripts/generate-brand-assets.mjs",
     "admin:create": "node --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/create-admin.mjs",
     "mongodb:migrate": "node --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/migrate-mongodb.mjs",
     "mongodb:audit": "node --env-file-if-exists=.env.local --env-file-if-exists=.env scripts/audit-mongodb.mjs"
