@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { reviewApplication } from "@/lib/directory-queries";
+import { reviewApplication, verifyListing } from "@/lib/directory-queries";
 import { requireAdmin } from "@/lib/auth/session";
 
 export type ReviewApplicationState =
@@ -65,5 +65,39 @@ export async function reviewDirectoryApplication(
       decision === "approved"
         ? "Listing approved and published in the directory."
         : "Application rejected and removed from the public directory.",
+  };
+}
+
+export async function verifyDirectoryListing(
+  id: string,
+  _previousState: ReviewApplicationState,
+  _formData: FormData,
+): Promise<ReviewApplicationState> {
+  void _previousState;
+  void _formData;
+  const session = await requireAdmin();
+  try {
+    const updated = await verifyListing({
+      id,
+      reviewer: {
+        admin_id: session.id,
+        email: session.email,
+        name: session.name,
+      },
+    });
+    if (!updated) {
+      return { success: false, message: "Only published listings can be verified." };
+    }
+  } catch (error) {
+    console.error("[verifyDirectoryListing]", error);
+    return { success: false, message: "Could not record verification right now." };
+  }
+  revalidatePath("/admin");
+  revalidatePath(`/admin/applications/${id}`);
+  revalidatePath("/directory");
+  revalidatePath(`/directory/${id}`);
+  return {
+    success: true,
+    message: "Details verified for another year.",
   };
 }

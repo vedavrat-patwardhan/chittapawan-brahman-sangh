@@ -34,6 +34,7 @@ export type MemberListFilters = {
 export type ApplicationListFilters = {
   search?: string;
   status?: ListingStatus | "all";
+  verification?: "due";
   page: number;
 };
 
@@ -42,6 +43,7 @@ export type ApplicationCounts = {
   pending: number;
   approved: number;
   rejected: number;
+  verificationDue: number;
 };
 
 const APPROVED_MEMBER_FILTER: Filter<DirectoryMemberDocument> = {
@@ -55,7 +57,15 @@ function escapeRegex(q: string) {
 function serializeMember(
   doc: DirectoryMemberDocument & { _id: { toString(): string } },
 ): Record<string, unknown> {
-  const { _id, created_at, updated_at, reviewed_at, ...rest } = doc;
+  const {
+    _id,
+    created_at,
+    updated_at,
+    reviewed_at,
+    last_verified_at,
+    verification_due_at,
+    ...rest
+  } = doc;
   return {
     ...rest,
     id: String(_id),
@@ -75,6 +85,21 @@ function serializeMember(
         : reviewed_at
           ? String(reviewed_at)
           : null,
+    last_verified_at:
+      last_verified_at instanceof Date
+        ? last_verified_at.toISOString()
+        : last_verified_at
+          ? String(last_verified_at)
+          : null,
+    verification_due_at:
+      verification_due_at instanceof Date
+        ? verification_due_at.toISOString()
+        : verification_due_at
+          ? String(verification_due_at)
+          : null,
+    is_verified_current:
+      verification_due_at instanceof Date &&
+      verification_due_at.getTime() > Date.now(),
     status: effectiveListingStatus(doc.status),
   };
 }
@@ -166,6 +191,9 @@ export async function insertMember(
     reviewed_by: null,
     admin_note: null,
     rejection_reason: null,
+    last_verified_at: null,
+    verification_due_at: null,
+    last_verified_by: null,
     schema_version: 3,
     ...identity,
     duplicate_risk: duplicateCandidates.length > 0,
@@ -247,6 +275,24 @@ function searchFilter(searchValue: string | undefined): Filter<DirectoryMemberDo
   };
 }
 
+function verificationFilter(
+  value: ApplicationListFilters["verification"],
+): Filter<DirectoryMemberDocument> {
+  if (value !== "due") return {};
+  return {
+    $and: [
+      APPROVED_MEMBER_FILTER,
+      {
+        $or: [
+          { verification_due_at: { $lte: new Date() } },
+          { verification_due_at: null },
+          { verification_due_at: { $exists: false } },
+        ],
+      },
+    ],
+  };
+}
+
 export async function listApplications(
   filters: ApplicationListFilters,
 ): Promise<{
@@ -259,6 +305,7 @@ export async function listApplications(
   const clauses = [
     applicationStatusFilter(filters.status),
     searchFilter(filters.search),
+    verificationFilter(filters.verification),
   ].filter((clause) => Object.keys(clause).length > 0);
   const query: Filter<DirectoryMemberDocument> =
     clauses.length === 0
@@ -302,13 +349,14 @@ export async function listApplications(
 
 export async function getApplicationCounts(): Promise<ApplicationCounts> {
   const members = await membersCollection();
-  const [all, pending, approved, rejected] = await Promise.all([
+  const [all, pending, approved, rejected, verificationDue] = await Promise.all([
     members.countDocuments(),
     members.countDocuments({ status: "pending" }),
     members.countDocuments(APPROVED_MEMBER_FILTER),
     members.countDocuments({ status: "rejected" }),
+    members.countDocuments(verificationFilter("due")),
   ]);
-  return { all, pending, approved, rejected };
+  return { all, pending, approved, rejected, verificationDue };
 }
 
 export async function getAdminApplicationById(
@@ -425,11 +473,12 @@ export async function refreshDuplicateRisk(id: string): Promise<string[]> {
 }
 
 export async function exportApplications(
-  filters: Pick<ApplicationListFilters, "search" | "status">,
+  filters: Pick<ApplicationListFilters, "search" | "status" | "verification">,
 ): Promise<Array<Record<string, unknown>>> {
   const clauses = [
     applicationStatusFilter(filters.status),
     searchFilter(filters.search),
+    verificationFilter(filters.verification),
   ].filter((clause) => Object.keys(clause).length > 0);
   const query: Filter<DirectoryMemberDocument> =
     clauses.length === 0
@@ -452,7 +501,17 @@ export async function reviewApplication(input: {
   const oid = parseObjectId(input.id);
   if (!oid) return false;
   const now = new Date();
+  const verificationDueAt = new Date(now);
+  verificationDueAt.setUTCFullYear(verificationDueAt.getUTCFullYear() + 1);
   const members = await membersCollection();
+  const verification =
+    input.status === "approved"
+      ? {
+          last_verified_at: now,
+          verification_due_at: verificationDueAt,
+          last_verified_by: input.reviewer,
+        }
+      : {};
   const result = await members.updateOne(
     { _id: oid },
     {
@@ -466,7 +525,33 @@ export async function reviewApplication(input: {
           input.status === "rejected"
             ? input.rejectionReason?.trim() || null
             : null,
-        schema_version: 3,
+        ...verification,
+        schema_version: input.status === "approved" ? 4 : 3,
+      },
+    },
+  );
+  return result.matchedCount === 1;
+}
+
+export async function verifyListing(input: {
+  id: string;
+  reviewer: MemberReviewer;
+}): Promise<boolean> {
+  const oid = parseObjectId(input.id);
+  if (!oid) return false;
+  const now = new Date();
+  const dueAt = new Date(now);
+  dueAt.setUTCFullYear(dueAt.getUTCFullYear() + 1);
+  const members = await membersCollection();
+  const result = await members.updateOne(
+    { $and: [{ _id: oid }, APPROVED_MEMBER_FILTER] },
+    {
+      $set: {
+        updated_at: now,
+        last_verified_at: now,
+        verification_due_at: dueAt,
+        last_verified_by: input.reviewer,
+        schema_version: 4,
       },
     },
   );

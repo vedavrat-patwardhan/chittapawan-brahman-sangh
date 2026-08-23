@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ReviewPanel } from "@/components/review-panel";
 import { CorrectionLinkPanel } from "@/components/correction-link-panel";
+import { VerificationPanel } from "@/components/verification-panel";
 import {
   findPotentialDuplicates,
   getAdminApplicationById,
@@ -215,6 +216,15 @@ export default async function AdminApplicationDetailPage(props: PageProps) {
             <ReviewPanel applicationId={id} defaultNote={text(row.admin_note)} defaultReason={text(row.rejection_reason)} />
           </div>
         </section>
+
+        {status === "approved" ? (
+          <VerificationPanel
+            memberId={id}
+            lastVerifiedAt={text(row.last_verified_at)}
+            dueAt={text(row.verification_due_at)}
+            current={row.is_verified_current === true}
+          />
+        ) : null}
 
         {status === "approved" ? <CorrectionLinkPanel memberId={id} /> : null}
 

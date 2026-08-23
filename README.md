@@ -15,6 +15,8 @@ A community business directory built with Next.js 16 and MongoDB. Business owner
 
 New submissions are normalized and compared by email, phone, and business name. Similar records are marked as possible duplicates for administrator review but are never rejected automatically.
 
+Published listings carry a one-year verification date. Admins can filter listings that are due, confirm them in one click, or send the owner a correction link; approved owner corrections renew verification automatically.
+
 Legacy MongoDB records without a `status` are treated as approved so the Supabase migration does not make existing listings disappear. Run the idempotent migration below to backfill them explicitly.
 
 ## Local setup

@@ -26,6 +26,7 @@ const emptyCounts: ApplicationCounts = {
   pending: 0,
   approved: 0,
   rejected: 0,
+  verificationDue: 0,
 };
 
 function statusTone(status: ListingStatus): string {
@@ -42,12 +43,15 @@ export default async function AdminDashboardPage(props: PageProps) {
   const raw = (await props.searchParams) ?? {};
   const search = qp(raw.search);
   const requestedStatus = qp(raw.status);
+  const verification = qp(raw.verification) === "due" ? "due" : undefined;
   const status: ListingStatus | "all" =
     requestedStatus === "all"
       ? "all"
       : LISTING_STATUSES.includes(requestedStatus as ListingStatus)
         ? (requestedStatus as ListingStatus)
-        : "pending";
+        : verification
+          ? "approved"
+          : "pending";
   const parsedPage = Number(qp(raw.page) ?? "1");
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
@@ -62,7 +66,7 @@ export default async function AdminDashboardPage(props: PageProps) {
   try {
     [counts, applications] = await Promise.all([
       getApplicationCounts(),
-      listApplications({ search, status, page }),
+      listApplications({ search, status, verification, page }),
     ]);
   } catch (error) {
     dbError = true;
@@ -81,6 +85,7 @@ export default async function AdminDashboardPage(props: PageProps) {
   const exportParams = new URLSearchParams();
   if (status !== "all") exportParams.set("status", status);
   if (search) exportParams.set("search", search);
+  if (verification) exportParams.set("verification", verification);
   const exportHref = `/admin/export?${exportParams.toString()}`;
 
   return (
@@ -149,8 +154,20 @@ export default async function AdminDashboardPage(props: PageProps) {
         })}
       </section>
 
+      <Link
+        href={verification ? "/admin?status=approved" : "/admin?status=approved&verification=due"}
+        className={`flex flex-col gap-2 rounded-[var(--radius-card)] border p-5 transition-colors sm:flex-row sm:items-center sm:justify-between ${verification ? "border-[var(--risk)] bg-[color-mix(in_oklch,var(--risk)_6%,transparent)]" : "border-[var(--line)] bg-[var(--surface-card)] hover:border-[var(--risk)]"}`}
+      >
+        <span>
+          <strong className="text-sm text-[var(--ink)]">Annual verification due</strong>
+          <span className="mt-1 block text-xs text-[var(--muted)]">Listings remain published while the team confirms their details.</span>
+        </span>
+        <span className="text-2xl font-bold tabular-nums text-[var(--risk)]">{counts.verificationDue}</span>
+      </Link>
+
       <form method="get" className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface-card)] p-4 sm:flex-row">
         {status !== "pending" ? <input type="hidden" name="status" value={status} /> : null}
+        {verification ? <input type="hidden" name="verification" value="due" /> : null}
         <label className="sr-only" htmlFor="admin-search">Search applications</label>
         <input
           id="admin-search"
@@ -163,7 +180,7 @@ export default async function AdminDashboardPage(props: PageProps) {
           Search
         </button>
         {search ? (
-          <Link href={status === "pending" ? "/admin" : `/admin?status=${status}`} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--line-strong)] px-5 text-sm font-semibold text-[var(--ink-soft)]">
+          <Link href={verification ? "/admin?status=approved&verification=due" : status === "pending" ? "/admin" : `/admin?status=${status}`} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--line-strong)] px-5 text-sm font-semibold text-[var(--ink-soft)]">
             Clear
           </Link>
         ) : null}
@@ -199,6 +216,9 @@ export default async function AdminDashboardPage(props: PageProps) {
                         Possible duplicate
                       </p>
                     ) : null}
+                    {row.status === "approved" && !row.is_verified_current ? (
+                      <p className="mt-1 text-[0.68rem] font-bold text-[var(--risk)]">Verification due</p>
+                    ) : null}
                   </td>
                   <td className="px-5 py-4">
                     <p className="font-semibold text-[var(--ink-soft)]">{row.business_name}</p>
@@ -231,7 +251,7 @@ export default async function AdminDashboardPage(props: PageProps) {
         page={applications.page}
         pageCount={applications.pageCount}
         pathname="/admin"
-        baseQuery={{ search, status: status === "pending" ? undefined : status }}
+        baseQuery={{ search, status: status === "pending" ? undefined : status, verification }}
       />
     </div>
   );

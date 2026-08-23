@@ -235,7 +235,10 @@ export default async function DirectoryPage(props: PageProps) {
               <article key={row.id} className="rounded-[var(--radius-card)] border border-[var(--line)] bg-[var(--surface-card)] p-5 shadow-[0_18px_45px_-38px_var(--ink)]">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-[0.64rem] font-bold tracking-[0.11em] text-[var(--accent-strong)] uppercase">{row.business_category}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-[0.64rem] font-bold tracking-[0.11em] text-[var(--accent-strong)] uppercase">{row.business_category}</p>
+                      {row.is_verified_current ? <span className="rounded-full bg-[color-mix(in_oklch,var(--success)_10%,transparent)] px-2 py-0.5 text-[0.6rem] font-bold text-[var(--success)]">Verified ✓</span> : null}
+                    </div>
                     <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold leading-tight text-[var(--ink)]">{row.business_name}</h2>
                     <p className="mt-1 text-sm text-[var(--ink-soft)]">{row.full_name} · {row.city}</p>
                   </div>
@@ -307,6 +310,7 @@ export default async function DirectoryPage(props: PageProps) {
                   >
                     <td className="sticky left-0 bg-inherit px-4 py-4 font-semibold text-[var(--ink)] shadow-[4px_0_10px_-6px_rgba(0,0,0,0.12)]">
                       {row.full_name}
+                      {row.is_verified_current ? <span className="mt-1 block text-[0.62rem] font-bold text-[var(--success)]">Verified ✓</span> : null}
                     </td>
                     <td className="px-4 py-4 text-[var(--ink)]">
                       {row.business_name}

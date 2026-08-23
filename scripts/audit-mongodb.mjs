@@ -20,7 +20,7 @@ try {
       { [field]: "" },
     ]),
   };
-  const [total, pending, approved, rejected, legacy, invalidStatus, missingRequired, missingNormalizedIdentity, possibleDuplicates, uploadCount, pendingCorrections, activeCorrectionLinks, indexes] = await Promise.all([
+  const [total, pending, approved, rejected, legacy, invalidStatus, missingRequired, missingNormalizedIdentity, possibleDuplicates, verificationDue, uploadCount, pendingCorrections, activeCorrectionLinks, indexes] = await Promise.all([
     members.countDocuments(),
     members.countDocuments({ status: "pending" }),
     members.countDocuments({ status: "approved" }),
@@ -36,6 +36,7 @@ try {
       ],
     }),
     members.countDocuments({ duplicate_risk: true }),
+    members.countDocuments({ status: "approved", $or: [{ verification_due_at: { $lte: new Date() } }, { verification_due_at: null }, { verification_due_at: { $exists: false } }] }),
     uploads.countDocuments(),
     changeRequests.countDocuments({ status: "pending" }),
     editTokens.countDocuments({ used_at: null, revoked_at: null, expires_at: { $gt: new Date() } }),
@@ -46,7 +47,7 @@ try {
     database: dbName,
     listings: { total, pending, approved, rejected, legacyWithoutStatus: legacy },
     integrity: { invalidStatus, missingRequiredFields: missingRequired, missingNormalizedIdentity },
-    reviewSignals: { possibleDuplicates },
+    reviewSignals: { possibleDuplicates, verificationDue },
     corrections: { pending: pendingCorrections, activeLinks: activeCorrectionLinks },
     uploads: uploadCount,
     indexes: indexes.map((index) => index.name),

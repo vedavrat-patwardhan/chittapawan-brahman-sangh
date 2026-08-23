@@ -104,6 +104,7 @@ export default async function MemberDetailPage(props: PageProps) {
   const websiteUrl = safeHttpUrl(row.website);
   const wa = asString(row.whatsapp_number);
   const waHref = wa ? whatsAppLink(wa) : null;
+  const isVerifiedCurrent = row.is_verified_current === true;
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-12 px-[var(--hero-pad-inline)] py-12 sm:py-16">
@@ -129,9 +130,12 @@ export default async function MemberDetailPage(props: PageProps) {
       <header className="motion-rise flex flex-col gap-10 lg:flex-row">
         <div className="flex flex-1 flex-col gap-5">
           <div>
-            <p className="text-[0.72rem] font-semibold tracking-[0.14em] text-[var(--accent-strong)] uppercase">
-              {asString(row.business_category)}
-            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-[0.72rem] font-semibold tracking-[0.14em] text-[var(--accent-strong)] uppercase">
+                {asString(row.business_category)}
+              </p>
+              {isVerifiedCurrent ? <span className="rounded-full bg-[color-mix(in_oklch,var(--success)_11%,transparent)] px-3 py-1 text-[0.66rem] font-bold text-[var(--success)] ring-1 ring-[color-mix(in_oklch,var(--success)_22%,transparent)]">Details verified ✓</span> : null}
+            </div>
             <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold tracking-tight text-[var(--ink)] sm:text-5xl">
               {fullName}
             </h1>

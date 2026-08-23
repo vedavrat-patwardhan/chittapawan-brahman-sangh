@@ -17,6 +17,17 @@ function normalizeBusinessName(value) {
     .replace(/\s+/g, " ");
 }
 
+function validDate(value) {
+  const date = value instanceof Date ? value : new Date(value ?? Number.NaN);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function oneYearAfter(value) {
+  const date = new Date(value);
+  date.setUTCFullYear(date.getUTCFullYear() + 1);
+  return date;
+}
+
 const uri = process.env.MONGODB_URI?.trim();
 const dbName = process.env.MONGODB_DB?.trim() || "chitpavan";
 if (!uri) throw new Error("Missing MONGODB_URI in .env.local or .env");
@@ -37,8 +48,19 @@ try {
 
   let normalizedCount = 0;
   let operations = [];
-  const cursor = members.find({}, { projection: { email: 1, contact_number: 1, business_name: 1 } });
+  const cursor = members.find({}, { projection: { email: 1, contact_number: 1, business_name: 1, status: 1, created_at: 1, updated_at: 1, reviewed_at: 1, last_verified_at: 1, verification_due_at: 1, schema_version: 1 } });
   for await (const member of cursor) {
+    const lastVerifiedAt =
+      member.status === "approved"
+        ? validDate(member.last_verified_at) ??
+          validDate(member.reviewed_at) ??
+          validDate(member.updated_at) ??
+          validDate(member.created_at)
+        : null;
+    const verificationDueAt =
+      member.status === "approved" && lastVerifiedAt
+        ? validDate(member.verification_due_at) ?? oneYearAfter(lastVerifiedAt)
+        : null;
     operations.push({
       updateOne: {
         filter: { _id: member._id },
@@ -47,7 +69,16 @@ try {
             email_normalized: normalizeEmail(member.email),
             contact_number_normalized: normalizePhone(member.contact_number),
             business_name_normalized: normalizeBusinessName(member.business_name),
-            schema_version: 3,
+            ...(lastVerifiedAt
+              ? {
+                  last_verified_at: lastVerifiedAt,
+                  verification_due_at: verificationDueAt,
+                }
+              : {}),
+            schema_version:
+              member.status === "approved"
+                ? Math.max(Number(member.schema_version) || 0, 4)
+                : Math.max(Number(member.schema_version) || 0, 3),
           },
         },
       },
@@ -126,6 +157,7 @@ try {
     members.createIndex({ email_normalized: 1 }),
     members.createIndex({ contact_number_normalized: 1 }),
     members.createIndex({ business_name_normalized: 1 }),
+    members.createIndex({ status: 1, verification_due_at: 1 }),
     admins.createIndex({ email: 1 }, { unique: true }),
     rateLimits.createIndex({ key: 1 }, { unique: true }),
     rateLimits.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 }),

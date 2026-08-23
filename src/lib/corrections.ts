@@ -335,6 +335,19 @@ export async function reviewChangeRequest(input: {
   const setValues: Record<string, unknown> = {
     ...request.changes,
     updated_at: now,
+    last_verified_at: now,
+    verification_due_at: new Date(
+      Date.UTC(
+        now.getUTCFullYear() + 1,
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        now.getUTCHours(),
+        now.getUTCMinutes(),
+        now.getUTCSeconds(),
+        now.getUTCMilliseconds(),
+      ),
+    ),
+    last_verified_by: input.reviewer,
     schema_version: 4,
   };
   const nextIdentity = {

@@ -14,6 +14,8 @@ export type MemberListItem = {
   email: string;
   contact_number: string;
   products_services: string;
+  verification_due_at: string | null;
+  is_verified_current: boolean;
 };
 
 export type AdminApplicationListItem = MemberListItem & {
@@ -59,6 +61,9 @@ export type DirectoryMemberDocument = {
   reviewed_by?: MemberReviewer | null;
   admin_note?: string | null;
   rejection_reason?: string | null;
+  last_verified_at?: Date | null;
+  verification_due_at?: Date | null;
+  last_verified_by?: MemberReviewer | null;
   schema_version?: number;
   email_normalized?: string;
   contact_number_normalized?: string;
@@ -114,6 +119,11 @@ export function mapMemberRow(row: Record<string, unknown>): MemberListItem {
     email: String(row.email),
     contact_number: String(row.contact_number),
     products_services: String(row.products_services),
+    verification_due_at:
+      typeof row.verification_due_at === "string"
+        ? row.verification_due_at
+        : null,
+    is_verified_current: row.is_verified_current === true,
   };
 }
 

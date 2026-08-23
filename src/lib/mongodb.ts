@@ -129,6 +129,7 @@ async function ensureIndexes(db: Db): Promise<void> {
     members.createIndex({ email_normalized: 1 }),
     members.createIndex({ contact_number_normalized: 1 }),
     members.createIndex({ business_name_normalized: 1 }),
+    members.createIndex({ status: 1, verification_due_at: 1 }),
     admins.createIndex({ email: 1 }, { unique: true }),
     rateLimits.createIndex({ key: 1 }, { unique: true }),
     rateLimits.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 }),

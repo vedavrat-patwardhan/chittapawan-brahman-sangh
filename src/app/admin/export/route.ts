@@ -84,7 +84,11 @@ export async function GET(request: NextRequest) {
     ? (requestedStatus as ListingStatus)
     : "all";
   const search = request.nextUrl.searchParams.get("search")?.trim().slice(0, 100);
-  const rows = await exportApplications({ status, search });
+  const verification =
+    request.nextUrl.searchParams.get("verification") === "due"
+      ? "due"
+      : undefined;
+  const rows = await exportApplications({ status, search, verification });
   const csv = [
     columns.map((column) => csvValue(column.heading)).join(","),
     ...rows.map((row) =>
