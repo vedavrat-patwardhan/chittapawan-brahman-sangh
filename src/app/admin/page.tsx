@@ -224,7 +224,7 @@ export default async function AdminDashboardPage(props: PageProps) {
                     <p className="font-semibold text-[var(--ink-soft)]">{row.business_name}</p>
                     <p className="mt-0.5 text-xs text-[var(--muted)]">{row.city}</p>
                   </td>
-                  <td className="px-5 py-4 text-xs text-[var(--ink-soft)]">{row.business_category}</td>
+                  <td className="px-5 py-4 text-xs text-[var(--ink-soft)]">{row.business_categories.join(", ")}</td>
                   <td className="px-5 py-4 text-xs text-[var(--muted)]">
                     <time dateTime={row.created_at}>{new Date(row.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })}</time>
                   </td>

@@ -155,7 +155,7 @@ export default async function AdminApplicationDetailPage(props: PageProps) {
 
         <InfoSection title="Business profile" fields={[
           { label: "Business name", value: text(row.business_name) },
-          { label: "Category", value: text(row.business_category) },
+          { label: "Categories", value: list(row.business_categories).join(", ") || text(row.business_category) },
           { label: "Sub-category", value: text(row.sub_category) },
           { label: "Business types", value: list(row.business_types).join(" · ") },
           { label: "Keywords", value: text(row.keywords_tags) },

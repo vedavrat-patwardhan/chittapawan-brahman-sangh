@@ -1,4 +1,5 @@
 import type { Filter } from "mongodb";
+import { ObjectId } from "mongodb";
 import { cache } from "react";
 
 import {
@@ -59,6 +60,7 @@ function serializeMember(
 ): Record<string, unknown> {
   const {
     _id,
+    owner_user_id,
     created_at,
     updated_at,
     reviewed_at,
@@ -68,6 +70,7 @@ function serializeMember(
   } = doc;
   return {
     ...rest,
+    owner_user_id: owner_user_id?.toString() ?? null,
     id: String(_id),
     created_at:
       created_at instanceof Date ? created_at.toISOString() : String(created_at),
@@ -104,6 +107,33 @@ function serializeMember(
   };
 }
 
+export async function listOwnedApplications(
+  ownerUserId: string,
+): Promise<Array<Record<string, unknown>>> {
+  const ownerId = parseObjectId(ownerUserId);
+  if (!ownerId) return [];
+  const members = await membersCollection();
+  const docs = await members
+    .find({ owner_user_id: ownerId })
+    .sort({ created_at: -1 })
+    .toArray();
+  return docs.map(serializeMember);
+}
+
+export async function getOwnedApplication(
+  ownerUserId: string,
+  memberId: string,
+): Promise<Record<string, unknown> | null> {
+  const ownerId = parseObjectId(ownerUserId);
+  const memberObjectId = parseObjectId(memberId);
+  if (!ownerId || !memberObjectId) return null;
+  const doc = await (await membersCollection()).findOne({
+    _id: memberObjectId,
+    owner_user_id: ownerId,
+  });
+  return doc ? serializeMember(doc) : null;
+}
+
 export async function listMembers(
   filters: MemberListFilters,
 ): Promise<{ rows: MemberListItem[]; total: number; page: number; pageCount: number }> {
@@ -114,7 +144,11 @@ export async function listMembers(
   const clauses: Filter<DirectoryMemberDocument>[] = [APPROVED_MEMBER_FILTER];
 
   const cat = filters.category?.trim();
-  if (cat) clauses.push({ business_category: cat });
+  if (cat) {
+    clauses.push({
+      $or: [{ business_categories: cat }, { business_category: cat }],
+    });
+  }
 
   const city = escapeRegex(filters.city ?? "");
   if (city.length) {
@@ -176,6 +210,7 @@ export const getMemberById = cache(async function getMemberById(
 
 export async function insertMember(
   payload: DirectoryMemberInsertInput,
+  ownerUserId: string,
 ): Promise<string> {
   const members = await membersCollection();
   const identity = normalizedMemberIdentity(payload);
@@ -194,7 +229,8 @@ export async function insertMember(
     last_verified_at: null,
     verification_due_at: null,
     last_verified_by: null,
-    schema_version: 3,
+    owner_user_id: new ObjectId(ownerUserId),
+    schema_version: 5,
     ...identity,
     duplicate_risk: duplicateCandidates.length > 0,
     duplicate_match_fields: duplicateMatchFields,
@@ -206,7 +242,8 @@ export async function insertMember(
     email: payload.email,
     city: payload.city,
     area_locality: payload.area_locality ?? null,
-    business_category: payload.business_category,
+    business_category: payload.business_categories[0]!,
+    business_categories: payload.business_categories,
     sub_category: payload.sub_category,
     business_types: payload.business_types,
     keywords_tags: payload.keywords_tags,
@@ -270,6 +307,7 @@ function searchFilter(searchValue: string | undefined): Filter<DirectoryMemberDo
       { email: field },
       { contact_number: field },
       { business_category: field },
+      { business_categories: field },
       { city: field },
     ],
   };
@@ -543,7 +581,7 @@ export async function reviewApplication(input: {
             ? input.rejectionReason?.trim() || null
             : null,
         ...verification,
-        schema_version: input.status === "approved" ? 4 : 3,
+        schema_version: 5,
       },
     },
   );

@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAdmin } from "@/lib/auth/session";
+import { requireMember } from "@/lib/auth/member-session";
 import { canonicalCategory, getBusinessCategories } from "@/lib/categories";
 import {
   createChangeRequest,
+  createOwnedChangeRequest,
   getCorrectionContext,
   issueCorrectionToken,
   reviewChangeRequest,
@@ -73,15 +75,28 @@ export async function submitOwnerCorrection(
     email: formData.get("email")?.toString() ?? "",
     city: formData.get("city")?.toString() ?? "",
     area_locality: formData.get("area_locality")?.toString() ?? "",
-    business_category: formData.get("business_category")?.toString() ?? "",
+    business_categories: values(formData, "business_categories"),
     sub_category: formData.get("sub_category")?.toString() ?? "",
+    business_types: values(formData, "business_types"),
+    keywords_tags: formData.get("keywords_tags")?.toString() ?? "",
     products_services: formData.get("products_services")?.toString() ?? "",
+    specialization: formData.get("specialization")?.toString() ?? "",
+    years_experience: formData.get("years_experience")?.toString() ?? "",
+    price_ranges: values(formData, "price_ranges"),
     business_address: formData.get("business_address")?.toString() ?? "",
     service_area: values(formData, "service_area"),
+    google_maps_link: formData.get("google_maps_link")?.toString() ?? "",
     website: formData.get("website")?.toString() ?? "",
     instagram: formData.get("instagram")?.toString() ?? "",
     facebook: formData.get("facebook")?.toString() ?? "",
     linkedin: formData.get("linkedin")?.toString() ?? "",
+    usp: formData.get("usp")?.toString() ?? "",
+    certifications: formData.get("certifications")?.toString() ?? "",
+    awards: formData.get("awards")?.toString() ?? "",
+    looking_for: values(formData, "looking_for"),
+    preferred_categories_connect: values(formData, "preferred_categories_connect"),
+    target_customers: formData.get("target_customers")?.toString() ?? "",
+    referred_by: formData.get("referred_by")?.toString() ?? "",
     owner_note: formData.get("owner_note")?.toString() ?? "",
   });
   if (!parsed.success) {
@@ -96,16 +111,22 @@ export async function submitOwnerCorrection(
     getBusinessCategories(),
     getCorrectionContext(token),
   ]);
-  const currentCategory = correctionContext?.listing.business_category;
-  const businessCategory =
-    canonicalCategory(parsed.data.business_category, allowedCategories) ??
-    (parsed.data.business_category === currentCategory
-      ? parsed.data.business_category
-      : undefined);
-  if (!businessCategory) {
+  const currentCategories = correctionContext?.listing.business_categories;
+  const businessCategories = parsed.data.business_categories.map(
+    (category) =>
+      canonicalCategory(category, allowedCategories) ??
+      (Array.isArray(currentCategories) && currentCategories.includes(category)
+        ? category
+        : undefined),
+  );
+  const preferredCategories = parsed.data.preferred_categories_connect.map((category) => canonicalCategory(category, allowedCategories));
+  if (
+    businessCategories.some((category) => !category) ||
+    preferredCategories.some((category) => !category)
+  ) {
     return {
       success: false,
-      message: "Choose a business category from the current directory options.",
+      message: "Choose business categories from the current directory options.",
     };
   }
 
@@ -113,7 +134,10 @@ export async function submitOwnerCorrection(
   try {
     requestId = await createChangeRequest(token, {
       ...parsed.data,
-      business_category: businessCategory,
+      business_categories: Array.from(new Set(businessCategories.filter(
+        (category): category is string => Boolean(category),
+      ))),
+      preferred_categories_connect: preferredCategories.filter((category): category is string => Boolean(category)),
     });
   } catch (error) {
     console.error("[submitOwnerCorrection]", error);
@@ -132,6 +156,71 @@ export async function submitOwnerCorrection(
     };
   }
   redirect(`/update/success?reference=${requestId}`);
+}
+
+export async function submitAccountCorrection(
+  memberId: string,
+  _previousState: SubmitCorrectionState,
+  formData: FormData,
+): Promise<SubmitCorrectionState> {
+  const account = await requireMember(`/account/businesses/${memberId}/edit`);
+  const parsed = directoryCorrectionSchema.safeParse({
+    full_name: formData.get("full_name")?.toString() ?? "",
+    business_name: formData.get("business_name")?.toString() ?? "",
+    contact_number: formData.get("contact_number")?.toString() ?? "",
+    whatsapp_number: formData.get("whatsapp_number")?.toString() ?? "",
+    email: formData.get("email")?.toString() ?? "",
+    city: formData.get("city")?.toString() ?? "",
+    area_locality: formData.get("area_locality")?.toString() ?? "",
+    business_categories: values(formData, "business_categories"),
+    sub_category: formData.get("sub_category")?.toString() ?? "",
+    business_types: values(formData, "business_types"),
+    keywords_tags: formData.get("keywords_tags")?.toString() ?? "",
+    products_services: formData.get("products_services")?.toString() ?? "",
+    specialization: formData.get("specialization")?.toString() ?? "",
+    years_experience: formData.get("years_experience")?.toString() ?? "",
+    price_ranges: values(formData, "price_ranges"),
+    business_address: formData.get("business_address")?.toString() ?? "",
+    service_area: values(formData, "service_area"),
+    google_maps_link: formData.get("google_maps_link")?.toString() ?? "",
+    website: formData.get("website")?.toString() ?? "",
+    instagram: formData.get("instagram")?.toString() ?? "",
+    facebook: formData.get("facebook")?.toString() ?? "",
+    linkedin: formData.get("linkedin")?.toString() ?? "",
+    usp: formData.get("usp")?.toString() ?? "",
+    certifications: formData.get("certifications")?.toString() ?? "",
+    awards: formData.get("awards")?.toString() ?? "",
+    looking_for: values(formData, "looking_for"),
+    preferred_categories_connect: values(formData, "preferred_categories_connect"),
+    target_customers: formData.get("target_customers")?.toString() ?? "",
+    referred_by: formData.get("referred_by")?.toString() ?? "",
+    owner_note: formData.get("owner_note")?.toString() ?? "",
+  });
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join(" · ") };
+  }
+  const allowed = await getBusinessCategories();
+  const categories = parsed.data.business_categories.map((category) => canonicalCategory(category, allowed));
+  const preferredCategories = parsed.data.preferred_categories_connect.map((category) => canonicalCategory(category, allowed));
+  if (categories.some((category) => !category) || preferredCategories.some((category) => !category)) {
+    return { success: false, message: "Choose business categories from the current directory options." };
+  }
+  let result;
+  try {
+    result = await createOwnedChangeRequest(account.id, memberId, {
+      ...parsed.data,
+      business_categories: Array.from(new Set(categories.filter((category): category is string => Boolean(category)))),
+      preferred_categories_connect: preferredCategories.filter((category): category is string => Boolean(category)),
+    });
+  } catch (error) {
+    console.error("[submitAccountCorrection]", error);
+    return { success: false, message: "Could not submit these changes right now. Please try again shortly." };
+  }
+  if (!result) return { success: false, message: "This listing is unavailable or does not belong to your account." };
+  if (result === "pending") return { success: false, message: "A change request for this business is already waiting for review." };
+  if (result === "unchanged") return { success: false, message: "No changes were found. Update a field or add a note." };
+  revalidatePath("/account");
+  redirect("/account?change_submitted=1");
 }
 
 export async function decideOwnerCorrection(
@@ -174,6 +263,7 @@ export async function decideOwnerCorrection(
   revalidatePath(`/admin/changes/${requestId}`);
   revalidatePath("/admin");
   revalidatePath("/directory");
+  revalidatePath("/account");
   return {
     success: true,
     message:

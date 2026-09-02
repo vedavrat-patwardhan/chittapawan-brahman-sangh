@@ -57,6 +57,13 @@ export async function getCategoryUsage(): Promise<CategoryUsage> {
         $project: {
           categories: {
             $setUnion: [
+              {
+                $cond: [
+                  { $isArray: "$business_categories" },
+                  "$business_categories",
+                  [],
+                ],
+              },
               ["$business_category"],
               { $ifNull: ["$preferred_categories_connect", []] },
             ],
@@ -109,6 +116,7 @@ export async function mutateBusinessCategories(input: {
       const used = await members.countDocuments({
         $or: [
           { business_category: current[index] },
+          { business_categories: current[index] },
           { preferred_categories_connect: current[index] },
         ],
       });

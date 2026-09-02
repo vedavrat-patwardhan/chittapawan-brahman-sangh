@@ -7,6 +7,7 @@ export type MemberListItem = {
   full_name: string;
   business_name: string;
   business_category: string;
+  business_categories: string[];
   sub_category: string;
   city: string;
   keywords_tags: string;
@@ -54,6 +55,7 @@ export type MemberReviewer = {
 
 /** Stored in MongoDB `directory_members`. `_id` is added by the driver. */
 export type DirectoryMemberDocument = {
+  owner_user_id?: import("mongodb").ObjectId | null;
   created_at: Date;
   updated_at?: Date;
   status?: ListingStatus;
@@ -79,6 +81,7 @@ export type DirectoryMemberDocument = {
   city: string;
   area_locality: string | null;
   business_category: string;
+  business_categories?: string[];
   sub_category: string;
   business_types: string[];
   keywords_tags: string;
@@ -106,12 +109,23 @@ export type DirectoryMemberDocument = {
 };
 
 export function mapMemberRow(row: Record<string, unknown>): MemberListItem {
+  const businessCategories = Array.isArray(row.business_categories)
+    ? row.business_categories.filter(
+        (value): value is string => typeof value === "string" && value.length > 0,
+      )
+    : [];
+  const legacyCategory =
+    typeof row.business_category === "string" ? row.business_category : "";
+  if (businessCategories.length === 0 && legacyCategory) {
+    businessCategories.push(legacyCategory);
+  }
   return {
     id: String(row.id),
     created_at: String(row.created_at),
     full_name: String(row.full_name),
     business_name: String(row.business_name),
-    business_category: String(row.business_category),
+    business_category: businessCategories[0] ?? legacyCategory,
+    business_categories: businessCategories,
     sub_category: String(row.sub_category),
     city: String(row.city),
     keywords_tags: String(row.keywords_tags),

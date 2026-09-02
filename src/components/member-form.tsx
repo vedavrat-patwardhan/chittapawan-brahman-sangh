@@ -34,7 +34,7 @@ const FIELD_LABELS: Record<string, string> = {
   contact_number: "Contact number",
   email: "Email address",
   city: "City",
-  business_category: "Business category",
+  business_categories: "Business categories",
   sub_category: "Sub-category",
   products_services: "Products / services",
   keywords_tags: "Keywords / tags",
@@ -44,7 +44,7 @@ const FIELD_LABELS: Record<string, string> = {
 const STEP_REQUIRED: Record<number, string[]> = {
   0: ["full_name", "business_name", "contact_number", "email"],
   1: ["city"],
-  2: ["business_category", "sub_category"],
+  2: ["business_categories", "sub_category"],
   3: ["products_services", "keywords_tags"],
   4: [],
   5: ["consent_share"],
@@ -188,8 +188,12 @@ function StepShell({
 /* ── Main form ──────────────────────────────────────────────────────────── */
 export function MemberIntakeForm({
   businessCategories,
+  accountName,
+  accountEmail,
 }: {
   businessCategories: readonly string[];
+  accountName: string;
+  accountEmail: string;
 }) {
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState<"forward" | "back">("forward");
@@ -373,6 +377,7 @@ export function MemberIntakeForm({
             >
               <input
                 name="full_name"
+                defaultValue={accountName}
                 autoComplete="name"
                 placeholder="Ramesh Kulkarni"
                 className={ic(fieldErrors, "full_name")}
@@ -471,6 +476,7 @@ export function MemberIntakeForm({
             <input
               name="email"
               type="email"
+              defaultValue={accountEmail}
               autoComplete="email"
               placeholder="ramesh@example.com"
               className={ic(fieldErrors, "email")}
@@ -540,16 +546,18 @@ export function MemberIntakeForm({
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <WizardField
-              label="Business category"
+              label="Business categories"
               required
-              error={fieldErrors.business_category}
+              hint="Choose up to 5"
+              error={fieldErrors.business_categories}
             >
-              <SearchableSelect
-                name="business_category"
+              <MultiSelect
+                name="business_categories"
                 options={businessCategories}
-                placeholder="Select sector…"
-                hasError={!!fieldErrors.business_category}
-                onChange={() => clearError("business_category")}
+                placeholder="Select sectors…"
+                maxSelections={5}
+                hasError={!!fieldErrors.business_categories}
+                onChange={() => clearError("business_categories")}
               />
             </WizardField>
             <WizardField

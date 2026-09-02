@@ -33,6 +33,18 @@ export type DirectoryAdminDocument = {
   session_version?: number;
 };
 
+export type DirectoryUserDocument = {
+  email: string;
+  name: string;
+  password_hash: string;
+  password_salt: string;
+  active: boolean;
+  created_at: Date;
+  updated_at: Date;
+  last_login_at: Date | null;
+  session_version: number;
+};
+
 export type RateLimitDocument = {
   key: string;
   count: number;
@@ -53,6 +65,8 @@ export type DirectoryEditTokenDocument = {
 export type DirectoryChangeRequestDocument = {
   member_id: ObjectId;
   token_id: ObjectId;
+  owner_user_id?: ObjectId | null;
+  source?: "admin_link" | "member_account";
   submitted_at: Date;
   status: ChangeRequestStatus;
   changes: Record<string, DirectoryChangeValue>;
@@ -121,6 +135,7 @@ export async function getDb(): Promise<Db> {
 async function ensureIndexes(db: Db): Promise<void> {
   const members = db.collection<DirectoryMemberDocument>("directory_members");
   const admins = db.collection<DirectoryAdminDocument>("directory_admins");
+  const users = db.collection<DirectoryUserDocument>("directory_users");
   const rateLimits = db.collection<RateLimitDocument>("rate_limits");
   const editTokens = db.collection<DirectoryEditTokenDocument>(
     "directory_edit_tokens",
@@ -134,6 +149,8 @@ async function ensureIndexes(db: Db): Promise<void> {
     members.createIndex({ status: 1, created_at: -1 }),
     members.createIndex({ status: 1, business_category: 1, created_at: -1 }),
     members.createIndex({ business_category: 1 }),
+    members.createIndex({ business_categories: 1 }),
+    members.createIndex({ owner_user_id: 1, created_at: -1 }),
     members.createIndex({ city: 1 }),
     members.createIndex({ business_types: 1 }),
     members.createIndex({ email_normalized: 1 }),
@@ -141,6 +158,7 @@ async function ensureIndexes(db: Db): Promise<void> {
     members.createIndex({ business_name_normalized: 1 }),
     members.createIndex({ status: 1, verification_due_at: 1 }),
     admins.createIndex({ email: 1 }, { unique: true }),
+    users.createIndex({ email: 1 }, { unique: true }),
     rateLimits.createIndex({ key: 1 }, { unique: true }),
     rateLimits.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 }),
     editTokens.createIndex({ token_hash: 1 }, { unique: true }),
@@ -149,6 +167,7 @@ async function ensureIndexes(db: Db): Promise<void> {
     changeRequests.createIndex({ token_id: 1 }, { unique: true }),
     changeRequests.createIndex({ status: 1, submitted_at: -1 }),
     changeRequests.createIndex({ member_id: 1, submitted_at: -1 }),
+    changeRequests.createIndex({ owner_user_id: 1, submitted_at: -1 }),
     settings.createIndex({ key: 1 }, { unique: true }),
   ]);
 }
@@ -169,6 +188,10 @@ export async function adminsCollection(): Promise<
   Collection<DirectoryAdminDocument>
 > {
   return (await getDb()).collection<DirectoryAdminDocument>("directory_admins");
+}
+
+export async function usersCollection(): Promise<Collection<DirectoryUserDocument>> {
+  return (await getDb()).collection<DirectoryUserDocument>("directory_users");
 }
 
 export async function rateLimitsCollection(): Promise<

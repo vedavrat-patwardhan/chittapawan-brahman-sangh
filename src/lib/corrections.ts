@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 
-import type { Filter, ObjectId } from "mongodb";
+import { ObjectId, type Filter } from "mongodb";
 
 import { getBusinessCategories } from "@/lib/categories";
 import {
@@ -31,15 +31,28 @@ const CORRECTION_FIELDS = [
   "email",
   "city",
   "area_locality",
-  "business_category",
+  "business_categories",
   "sub_category",
+  "business_types",
+  "keywords_tags",
   "products_services",
+  "specialization",
+  "years_experience",
+  "price_ranges",
   "business_address",
   "service_area",
+  "google_maps_link",
   "website",
   "instagram",
   "facebook",
   "linkedin",
+  "usp",
+  "certifications",
+  "awards",
+  "looking_for",
+  "preferred_categories_connect",
+  "target_customers",
+  "referred_by",
 ] as const;
 
 type CorrectionField = (typeof CORRECTION_FIELDS)[number];
@@ -165,7 +178,7 @@ export async function getCorrectionContext(
     businessCategories: Array.from(
       new Set([
         ...(await getBusinessCategories()),
-        member.business_category,
+        ...(member.business_categories ?? [member.business_category]),
       ]),
     ),
     listing,
@@ -198,6 +211,7 @@ export async function createChangeRequest(
   const result = await requests.insertOne({
     member_id: member._id,
     token_id: tokenDocument._id,
+    source: "admin_link",
     submitted_at: now,
     status: "pending",
     changes,
@@ -260,6 +274,98 @@ export async function listChangeRequests(
 
 export async function countPendingChangeRequests(): Promise<number> {
   return (await changeRequestsCollection()).countDocuments({ status: "pending" });
+}
+
+export async function listPendingOwnerChangeMemberIds(
+  ownerUserId: string,
+): Promise<string[]> {
+  const ownerId = parseObjectId(ownerUserId);
+  if (!ownerId) return [];
+  const docs = await (await changeRequestsCollection())
+    .find(
+      { owner_user_id: ownerId, status: { $in: ["pending", "processing"] } },
+      { projection: { member_id: 1 } },
+    )
+    .toArray();
+  return docs.map((doc) => doc.member_id.toString());
+}
+
+export async function getOwnedCorrectionContext(
+  ownerUserId: string,
+  memberId: string,
+): Promise<CorrectionContext | null> {
+  const ownerId = parseObjectId(ownerUserId);
+  const memberObjectId = parseObjectId(memberId);
+  if (!ownerId || !memberObjectId) return null;
+  const member = await (await membersCollection()).findOne({
+    $and: [
+      { _id: memberObjectId, owner_user_id: ownerId },
+      approvedMemberFilter,
+    ],
+  });
+  if (!member) return null;
+  const listing = {} as Record<CorrectionField, string | string[]>;
+  for (const field of CORRECTION_FIELDS) {
+    const value = member[field];
+    listing[field] = Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === "string")
+      : typeof value === "string"
+        ? value
+        : field === "business_categories"
+          ? [member.business_category]
+          : "";
+  }
+  return {
+    memberId: member._id.toString(),
+    expiresAt: "",
+    businessCategories: Array.from(
+      new Set([...(await getBusinessCategories()), ...(member.business_categories ?? [member.business_category])]),
+    ),
+    listing,
+  };
+}
+
+export async function createOwnedChangeRequest(
+  ownerUserId: string,
+  memberId: string,
+  input: DirectoryCorrectionInput,
+): Promise<"created" | "unchanged" | "pending" | null> {
+  const ownerId = parseObjectId(ownerUserId);
+  const memberObjectId = parseObjectId(memberId);
+  if (!ownerId || !memberObjectId) return null;
+  const members = await membersCollection();
+  const member = await members.findOne({
+    $and: [{ _id: memberObjectId, owner_user_id: ownerId }, approvedMemberFilter],
+  });
+  if (!member) return null;
+  const requests = await changeRequestsCollection();
+  if (await requests.findOne({ member_id: memberObjectId, status: { $in: ["pending", "processing"] } })) {
+    return "pending";
+  }
+  const changes: Record<string, DirectoryChangeValue> = {};
+  for (const field of CORRECTION_FIELDS) {
+    const nextValue = input[field];
+    const currentValue =
+      field === "business_categories" && !member.business_categories
+        ? [member.business_category]
+        : member[field];
+    if (!sameValue(currentValue, nextValue)) changes[field] = storedValue(nextValue);
+  }
+  if (!Object.keys(changes).length && !input.owner_note) return "unchanged";
+  await requests.insertOne({
+    member_id: memberObjectId,
+    token_id: new ObjectId(),
+    owner_user_id: ownerId,
+    source: "member_account",
+    submitted_at: new Date(),
+    status: "pending",
+    changes,
+    owner_note: input.owner_note || null,
+    reviewed_at: null,
+    reviewed_by: null,
+    admin_note: null,
+  });
+  return "created";
 }
 
 export type ChangeRequestDetail = ChangeRequestListItem & {
@@ -356,8 +462,11 @@ export async function reviewChangeRequest(input: {
       ),
     ),
     last_verified_by: input.reviewer,
-    schema_version: 4,
+    schema_version: 5,
   };
+  if (Array.isArray(request.changes.business_categories)) {
+    setValues.business_category = request.changes.business_categories[0];
+  }
   const nextIdentity = {
     email:
       typeof request.changes.email === "string"

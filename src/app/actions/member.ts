@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { insertMember } from "@/lib/directory-queries";
+import { requireMember } from "@/lib/auth/member-session";
 import { canonicalCategory, getBusinessCategories } from "@/lib/categories";
 import { BYPASS_FORM_VALIDATION } from "@/lib/feature-flags";
 import { consumeRateLimit, requestFingerprint } from "@/lib/rate-limit";
@@ -33,6 +34,7 @@ export async function submitDirectoryMember(
   _prev: SubmitMemberState,
   fd: FormData,
 ): Promise<SubmitMemberState> {
+  const account = await requireMember("/join");
   if (fd.get("company_website_confirmation")?.toString().trim()) {
     redirect("/join/success?reference=received");
   }
@@ -53,7 +55,7 @@ export async function submitDirectoryMember(
     city: fd.get("city")?.toString() ?? "",
     area_locality: fd.get("area_locality")?.toString(),
 
-    business_category: fd.get("business_category")?.toString() ?? "",
+    business_categories: getAll(fd, "business_categories"),
     sub_category: fd.get("sub_category")?.toString() ?? "",
     business_types: getAll(fd, "business_types"),
     keywords_tags: fd.get("keywords_tags")?.toString() ?? "",
@@ -101,21 +103,29 @@ export async function submitDirectoryMember(
   }
 
   const allowedCategories = await getBusinessCategories();
-  const businessCategory = canonicalCategory(
-    parsed.data.business_category,
-    allowedCategories,
+  const businessCategories = parsed.data.business_categories.map((category) =>
+    canonicalCategory(category, allowedCategories),
   );
   const preferredCategories = parsed.data.preferred_categories_connect.map(
     (category) => canonicalCategory(category, allowedCategories),
   );
-  if (!businessCategory || preferredCategories.some((category) => !category)) {
+  if (
+    businessCategories.some((category) => !category) ||
+    preferredCategories.some((category) => !category)
+  ) {
     return {
       message: "Choose business categories from the current directory options.",
     };
   }
   const payload: DirectoryMemberInsertInput = {
     ...parsed.data,
-    business_category: businessCategory,
+    business_categories: Array.from(
+      new Set(
+        businessCategories.filter(
+          (category): category is string => Boolean(category),
+        ),
+      ),
+    ),
     preferred_categories_connect: preferredCategories.filter(
       (category): category is string => Boolean(category),
     ),
@@ -143,9 +153,9 @@ export async function submitDirectoryMember(
   }
 
   try {
-    const fingerprint = await requestFingerprint("public-submission");
+    const fingerprint = await requestFingerprint("member-submission");
     const rateLimit = await consumeRateLimit({
-      key: `public-submission:${fingerprint}`,
+      key: `member-submission:${account.id}:${fingerprint}`,
       limit: 4,
       windowMs: 60 * 60 * 1000,
     });
@@ -201,7 +211,7 @@ export async function submitDirectoryMember(
       profile_photo_path,
       portfolio_paths: portfolio_paths.length ? portfolio_paths : undefined,
       visiting_card_path,
-    });
+    }, account.id);
   } catch (e: unknown) {
     await deleteMemberUploads(createdUploadIds).catch(() => undefined);
     console.error("[submitDirectoryMember]", e);
@@ -210,5 +220,5 @@ export async function submitDirectoryMember(
     };
   }
 
-  redirect(`/join/success?reference=${id}`);
+  redirect(`/account?submitted=1&reference=${id}`);
 }

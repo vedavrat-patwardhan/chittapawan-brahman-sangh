@@ -257,7 +257,7 @@ export default async function DirectoryPage(props: PageProps) {
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-[0.64rem] font-bold tracking-[0.11em] text-[var(--accent-strong)] uppercase">{row.business_category}</p>
+                      <p className="text-[0.64rem] font-bold tracking-[0.11em] text-[var(--accent-strong)] uppercase">{row.business_categories.join(" · ")}</p>
                       {row.is_verified_current ? <span className="rounded-full bg-[color-mix(in_oklch,var(--success)_10%,transparent)] px-2 py-0.5 text-[0.6rem] font-bold text-[var(--success)]">Verified ✓</span> : null}
                     </div>
                     <h2 className="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold leading-tight text-[var(--ink)]">{row.business_name}</h2>
@@ -338,7 +338,7 @@ export default async function DirectoryPage(props: PageProps) {
                     </td>
                     <td className="px-4 py-4">
                       <span className="rounded-full bg-[var(--accent-xsoft)] px-3 py-1 text-xs font-semibold text-[var(--accent-strong)] ring-1 ring-[var(--accent-soft)]">
-                        {row.business_category}
+                        {row.business_categories.join(" · ")}
                       </span>
                     </td>
                     <td className="px-4 py-4">{row.city}</td>

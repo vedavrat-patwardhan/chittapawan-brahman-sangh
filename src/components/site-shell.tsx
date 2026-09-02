@@ -2,10 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { logout } from "@/app/actions/auth";
+import { memberLogout } from "@/app/actions/account-auth";
 import { getSession } from "@/lib/auth/session";
+import { getMemberSession } from "@/lib/auth/member-session";
 
 export async function SiteHeader() {
-  const session = await getSession();
+  const [session, member] = await Promise.all([getSession(), getMemberSession()]);
 
   return (
     <header
@@ -44,10 +46,18 @@ export async function SiteHeader() {
           </Link>
           <Link
             className="rounded-full bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))] shadow-[0_8px_24px_-14px_var(--accent-strong)] transition-[transform,background-color] duration-200 ease-[var(--ease-out-expo)] hover:bg-[var(--accent-strong)] active:scale-[0.98] sm:px-4"
-            href="/join"
+            href={member ? "/join" : "/signup?next=/join"}
           >
-            Apply
+            {member ? "Add business" : "Join"}
           </Link>
+          {member ? (
+            <>
+              <Link className="hidden rounded-full border border-[var(--line-strong)] px-3 py-2 text-sm font-semibold text-[var(--ink-soft)] md:inline-flex" href="/account">My account</Link>
+              <form action={memberLogout} className="hidden lg:block"><button type="submit" className="rounded-full px-3 py-2 text-sm text-(--muted)">Sign out</button></form>
+            </>
+          ) : (
+            <Link className="hidden rounded-full px-3 py-2 text-sm font-medium text-(--ink-soft) md:inline-flex" href="/account/login">Member sign in</Link>
+          )}
           {session ? (
             <>
               <Link
@@ -80,7 +90,7 @@ export async function SiteHeader() {
 }
 
 export async function MobileNav() {
-  const session = await getSession();
+  const [session, member] = await Promise.all([getSession(), getMemberSession()]);
 
   return (
     <div
@@ -102,11 +112,14 @@ export async function MobileNav() {
               Admin
             </Link>
           ) : null}
+          {member ? (
+            <Link className="flex-1 rounded-full py-2.5 text-center text-sm font-medium text-[var(--ink-soft)]" href="/account">Account</Link>
+          ) : null}
           <Link
             className="flex-1 rounded-full bg-[var(--accent)] py-2.5 text-center text-sm font-semibold text-[color-mix(in_oklch,white_96%,var(--accent))]"
-            href="/join"
+            href={member ? "/join" : "/signup?next=/join"}
           >
-            Apply
+            {member ? "Add" : "Join"}
           </Link>
         </div>
       </div>
@@ -131,6 +144,7 @@ export function SiteFooter() {
             </div>
           </div>
           <div className="flex flex-col gap-1 text-sm text-[var(--ink-soft)]">
+            <Link href="/account/login" className="hover:text-[var(--accent-strong)] transition-colors">Member sign in</Link>
             <Link
               href="/login"
               className="hover:text-[var(--accent-strong)] transition-colors"

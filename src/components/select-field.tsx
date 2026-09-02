@@ -234,6 +234,8 @@ export interface MultiSelectProps {
   placeholder?: string;
   hasError?: boolean;
   defaultValue?: string[];
+  maxSelections?: number;
+  onChange?: (values: string[]) => void;
 }
 
 export function MultiSelect({
@@ -242,6 +244,8 @@ export function MultiSelect({
   placeholder = "Select options…",
   hasError = false,
   defaultValue = [],
+  maxSelections,
+  onChange,
 }: MultiSelectProps) {
   const listboxId = useId();
   const [open, setOpen] = useState(false);
@@ -265,14 +269,24 @@ export function MultiSelect({
   );
 
   function toggle(opt: string) {
-    setSelected((prev) =>
-      prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt],
-    );
+    setSelected((prev) => {
+      const next = prev.includes(opt)
+        ? prev.filter((o) => o !== opt)
+        : maxSelections && prev.length >= maxSelections
+          ? prev
+          : [...prev, opt];
+      onChange?.(next);
+      return next;
+    });
   }
 
   function remove(opt: string, e: React.MouseEvent) {
     e.stopPropagation();
-    setSelected((prev) => prev.filter((o) => o !== opt));
+    setSelected((prev) => {
+      const next = prev.filter((o) => o !== opt);
+      onChange?.(next);
+      return next;
+    });
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {

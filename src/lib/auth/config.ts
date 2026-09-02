@@ -2,6 +2,8 @@ import { timingSafeEqual } from "node:crypto";
 
 export const SESSION_COOKIE_NAME = "cbs_admin_session";
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 12;
+export const MEMBER_SESSION_COOKIE_NAME = "cbs_member_session";
+export const MEMBER_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 export type EnvironmentAdmin = {
   id: string;

@@ -38,6 +38,7 @@ try {
   const db = client.db(dbName);
   const members = db.collection("directory_members");
   const admins = db.collection("directory_admins");
+  const users = db.collection("directory_users");
   const rateLimits = db.collection("rate_limits");
   const editTokens = db.collection("directory_edit_tokens");
   const changeRequests = db.collection("directory_change_requests");
@@ -53,7 +54,7 @@ try {
 
   let normalizedCount = 0;
   let operations = [];
-  const cursor = members.find({}, { projection: { email: 1, contact_number: 1, business_name: 1, status: 1, created_at: 1, updated_at: 1, reviewed_at: 1, last_verified_at: 1, verification_due_at: 1, schema_version: 1 } });
+  const cursor = members.find({}, { projection: { email: 1, contact_number: 1, business_name: 1, business_category: 1, business_categories: 1, status: 1, created_at: 1, updated_at: 1, reviewed_at: 1, last_verified_at: 1, verification_due_at: 1, schema_version: 1 } });
   for await (const member of cursor) {
     const lastVerifiedAt =
       member.status === "approved"
@@ -74,6 +75,10 @@ try {
             email_normalized: normalizeEmail(member.email),
             contact_number_normalized: normalizePhone(member.contact_number),
             business_name_normalized: normalizeBusinessName(member.business_name),
+            business_categories:
+              Array.isArray(member.business_categories) && member.business_categories.length
+                ? member.business_categories
+                : [member.business_category].filter(Boolean),
             ...(lastVerifiedAt
               ? {
                   last_verified_at: lastVerifiedAt,
@@ -82,8 +87,8 @@ try {
               : {}),
             schema_version:
               member.status === "approved"
-                ? Math.max(Number(member.schema_version) || 0, 4)
-                : Math.max(Number(member.schema_version) || 0, 3),
+                ? Math.max(Number(member.schema_version) || 0, 5)
+                : Math.max(Number(member.schema_version) || 0, 5),
           },
         },
       },
@@ -157,6 +162,8 @@ try {
     members.createIndex({ status: 1, created_at: -1 }),
     members.createIndex({ status: 1, business_category: 1, created_at: -1 }),
     members.createIndex({ business_category: 1 }),
+    members.createIndex({ business_categories: 1 }),
+    members.createIndex({ owner_user_id: 1, created_at: -1 }),
     members.createIndex({ city: 1 }),
     members.createIndex({ business_types: 1 }),
     members.createIndex({ email_normalized: 1 }),
@@ -164,6 +171,7 @@ try {
     members.createIndex({ business_name_normalized: 1 }),
     members.createIndex({ status: 1, verification_due_at: 1 }),
     admins.createIndex({ email: 1 }, { unique: true }),
+    users.createIndex({ email: 1 }, { unique: true }),
     rateLimits.createIndex({ key: 1 }, { unique: true }),
     rateLimits.createIndex({ expires_at: 1 }, { expireAfterSeconds: 0 }),
     editTokens.createIndex({ token_hash: 1 }, { unique: true }),
@@ -172,6 +180,7 @@ try {
     changeRequests.createIndex({ token_id: 1 }, { unique: true }),
     changeRequests.createIndex({ status: 1, submitted_at: -1 }),
     changeRequests.createIndex({ member_id: 1, submitted_at: -1 }),
+    changeRequests.createIndex({ owner_user_id: 1, submitted_at: -1 }),
     settings.createIndex({ key: 1 }, { unique: true }),
   ]);
   console.log(`MongoDB migration complete. Backfilled ${legacyResult.modifiedCount} legacy listing(s), normalized ${normalizedCount} listing(s), and flagged ${duplicateSignals.size} possible duplicate(s).`);

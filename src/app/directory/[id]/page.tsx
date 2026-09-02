@@ -77,7 +77,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
     if (!row) return { title: "Not found" };
     const title = business || name || "Directory member";
     const description = [
-      asString(row.business_category),
+      asStringArray(row.business_categories).join(", ") || asString(row.business_category),
       asString(row.sub_category),
       asString(row.city),
     ]
@@ -129,6 +129,7 @@ export default async function MemberDetailPage(props: PageProps) {
   const wa = asString(row.whatsapp_number);
   const waHref = wa ? whatsAppLink(wa) : null;
   const isVerifiedCurrent = row.is_verified_current === true;
+  const businessCategories = asStringArray(row.business_categories);
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-12 px-[var(--hero-pad-inline)] py-12 sm:py-16">
@@ -156,7 +157,7 @@ export default async function MemberDetailPage(props: PageProps) {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <p className="text-[0.72rem] font-semibold tracking-[0.14em] text-[var(--accent-strong)] uppercase">
-                {asString(row.business_category)}
+                {(businessCategories.length ? businessCategories : [asString(row.business_category)]).join(" · ")}
               </p>
               {isVerifiedCurrent ? <span className="rounded-full bg-[color-mix(in_oklch,var(--success)_11%,transparent)] px-3 py-1 text-[0.66rem] font-bold text-[var(--success)] ring-1 ring-[color-mix(in_oklch,var(--success)_22%,transparent)]">Details verified ✓</span> : null}
             </div>

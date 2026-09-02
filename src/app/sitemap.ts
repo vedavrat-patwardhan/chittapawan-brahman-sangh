@@ -21,12 +21,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.9,
     },
-    {
-      url: absoluteUrl("/join"),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
   ];
   try {
     const members = await listApprovedMembersForSitemap();
